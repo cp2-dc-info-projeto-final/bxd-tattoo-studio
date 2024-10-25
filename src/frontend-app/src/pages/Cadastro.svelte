@@ -89,8 +89,11 @@
             <label for="conf_senha" class="form-label">Confirme sua senha</label>
             <input type="password" class="form-control" id="conf_senha" bind:value={conf_senha} placeholder="Confirme sua senha" required />
           </div>
+          {#if senha===conf_senha}
           <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
+          {/if}
         </form>
+        
         <p class="fs-5 pt-">Já possui cadastro?</p>
         <button on:click={irParaLogin} class="btn btn-success w-100">Logar-se</button>
         {#if error}

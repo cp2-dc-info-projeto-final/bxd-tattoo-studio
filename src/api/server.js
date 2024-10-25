@@ -224,8 +224,8 @@ app.put('/usuarios/:id_usuario', (req, res) => {
       usuarioAtualizado.senha = hashedPassword;
 
       // Atualiza o usuário no banco de dados
-      db.run('UPDATE usuario SET nome = ?, email = ?, idade = ?, senha = ? WHERE id_usuario = ?', 
-        [usuarioAtualizado.nome, usuarioAtualizado.email, usuarioAtualizado.idade, usuarioAtualizado.senha, id_usuario], 
+      db.run('UPDATE usuario SET nome = ?, email = ?, idade = ?, senha = ? WHERE id_usuario = ?',
+        [usuarioAtualizado.nome, usuarioAtualizado.email, usuarioAtualizado.idade, usuarioAtualizado.senha, id_usuario],
         function (err) {
           if (err) return res.status(500).json({ message: 'Erro ao atualizar usuário.' });
           res.json({ message: 'Usuário atualizado com sucesso!' });
@@ -233,8 +233,8 @@ app.put('/usuarios/:id_usuario', (req, res) => {
     });
   } else {
     // Se não houver senha, apenas atualiza os outros campos
-    db.run('UPDATE usuario SET nome = ?, email = ?, idade = ? WHERE id_usuario = ?', 
-      [usuarioAtualizado.nome, usuarioAtualizado.email, usuarioAtualizado.idade, id_usuario], 
+    db.run('UPDATE usuario SET nome = ?, email = ?, idade = ? WHERE id_usuario = ?',
+      [usuarioAtualizado.nome, usuarioAtualizado.email, usuarioAtualizado.idade, id_usuario],
       function (err) {
         if (err) return res.status(500).json({ message: 'Erro ao atualizar usuário.' });
         res.json({ message: 'Usuário atualizado com sucesso!' });

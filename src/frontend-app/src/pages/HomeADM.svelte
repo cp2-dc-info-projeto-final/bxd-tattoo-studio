@@ -34,6 +34,7 @@
             });
             irParaLogin // Redireciona para a página de login
         } catch (error) {
+            alert('algum erro deu ai: ', error)
             console.error('Erro ao fazer logout:', error);
         }
     };
