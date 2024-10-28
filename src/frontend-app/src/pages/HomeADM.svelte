@@ -2,6 +2,7 @@
     import { irParaLogin, irParaLoginADM } from "../stores/navigation";
     import { onMount } from "svelte";
     import { writable } from 'svelte/store';
+    import axios from "axios";
 
     const usuarios = writable([]);
     const adm = writable({});
@@ -25,19 +26,21 @@
         }
     };
 
-    // Função para fazer logout
-    const logout = async () => {
-        try {
-            await fetch('http://localhost:3000/api/logout', {
-                method: 'POST',
-                credentials: 'include',
-            });
-            irParaLogin // Redireciona para a página de login
-        } catch (error) {
-            alert('algum erro deu ai: ', error)
-            console.error('Erro ao fazer logout:', error);
-        }
-    };
+  // Função de logout
+  const logout = async () => {
+    try {
+      await axios.post(
+        "http://localhost:3000/api/logout",
+        {},
+        { withCredentials: true },
+      );
+      alert("Logout realizado com sucesso!");
+      irParaLogin(); // Redireciona para a página de login
+    } catch (error) {
+      console.error("Erro ao realizar logout:", error);
+      alert("Erro ao realizar logout.");
+    }
+  };
 
     // Função para pegar dados do administrador logado
     const pegaDadosADM = async () => {

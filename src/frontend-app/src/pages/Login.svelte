@@ -61,7 +61,7 @@
           <button type="submit" class="btn btn-success w-100">Entrar</button>
         </form>
         <p class="fs-5 pt-">Não possui cadastro?</p>
-        <button on:click={irParaCadastroADM} class="btn btn-success w-100">Cadastre-se</button>
+        <button on:click={irParaCadastro} class="btn btn-success w-100">Cadastre-se</button>
         <p class="fs-5 pt-">Logar ADM?</p>
         <button on:click={irParaLoginADM} class="btn btn-success w-100">Logar ADM</button>
         {#if error}
