@@ -67,16 +67,21 @@ app.get('/api/usuarios/me', (req, res) => {
   });
 });
 
-// Função para verificar as credenciais do usuário utilizando bcrypt.compare ADM
+// Função para verificar as credenciais do administrador utilizando bcrypt.compare para user e senha
 const verificarCredenciaisADM = (user, senha, callback) => {
-  db.get('SELECT * FROM adm WHERE user = ?', [user], (err, row) => {
+  db.all('SELECT * FROM adm', [], (err, rows) => {
     if (err) return callback(err);
-    if (!row) return callback(null, null); // Usuário não encontrado
+    if (rows.length === 0) return callback(null, null); // Nenhum administrador encontrado
 
-    bcrypt.compare(senha, row.senha, (err, isMatch) => {
+    // Verifica se algum administrador tem o user que foi digitado
+    const admFound = rows.find(adm => bcrypt.compareSync(user, adm.user));
+    if (!admFound) return callback(null, null); // User não encontrado
+
+    // Comparar a senha usando bcrypt
+    bcrypt.compare(senha, admFound.senha, (err, isPasswordMatch) => {
       if (err) return callback(err);
-      if (isMatch) {
-        return callback(null, row); // Credenciais corretas
+      if (isPasswordMatch) {
+        return callback(null, admFound); // Credenciais corretas
       } else {
         return callback(null, null); // Senha incorreta
       }
@@ -152,33 +157,52 @@ app.post('/usuarios/novo', (req, res) => {
   });
 });
 
-// Rota para cadastrar um novo adm
+// Rota de cadastro de administrador
 app.post('/adm/novo', (req, res) => {
   const { nome, user, senha } = req.body;
 
-  // Verifique se o user já está cadastrado
-  db.get('SELECT * FROM adm WHERE user = ?', [user], (err, row) => {
-    if (err) {
-      return res.status(500).json({ message: 'Erro ao verificar user.' });
-    }
+  // Verifica se o usuário já está cadastrado
+  db.get('SELECT * FROM adm', [], (err, row) => {
+    if (err) return res.status(500).json({ message: 'Erro ao verificar user.' });
     if (row) {
-      return res.status(400).json({ message: 'User já cadastrado.' });
-    }
-
-    // Hash da senha antes de salvar no banco de dados
-    bcrypt.hash(senha, 10, (err, hashedPassword) => {
-      if (err) {
-        return res.status(500).json({ message: 'Erro ao gerar hash da senha.' });
-      }
-
-      // Inserir o novo adm com a senha criptografada
-      db.run('INSERT INTO adm (nome, user, senha) VALUES (?, ?, ?)', [nome, user, hashedPassword], function (err) {
-        if (err) {
-          return res.status(500).json({ message: 'Erro ao cadastrar administrador.' });
+      // Usar bcrypt.compare para verificar se o user já existe
+      bcrypt.compare(user, row.user, (err, isMatch) => {
+        if (err) return res.status(500).json({ message: 'Erro ao verificar user.' });
+        if (isMatch) {
+          return res.status(400).json({ message: 'User já cadastrado.' });
         }
-        return res.status(201).json({ id: this.lastID, message: 'Administrador cadastrado com sucesso!' });
+
+        // Hash do user e senha antes de salvar no banco de dados
+        bcrypt.hash(user, 10, (err, hashedUser) => {
+          if (err) return res.status(500).json({ message: 'Erro ao gerar hash do user.' });
+
+          bcrypt.hash(senha, 10, (err, hashedPassword) => {
+            if (err) return res.status(500).json({ message: 'Erro ao gerar hash da senha.' });
+
+            // Inserir o novo administrador com user e senha criptografados
+            db.run('INSERT INTO adm (nome, user, senha) VALUES (?, ?, ?)', [nome, hashedUser, hashedPassword], function (err) {
+              if (err) return res.status(500).json({ message: 'Erro ao cadastrar administrador.' });
+              return res.status(201).json({ id: this.lastID, message: 'Administrador cadastrado com sucesso!' });
+            });
+          });
+        });
       });
-    });
+    } else {
+      // Se não encontrar, significa que não há administrador cadastrado, então prossegue com o cadastro
+      bcrypt.hash(user, 10, (err, hashedUser) => {
+        if (err) return res.status(500).json({ message: 'Erro ao gerar hash do user.' });
+
+        bcrypt.hash(senha, 10, (err, hashedPassword) => {
+          if (err) return res.status(500).json({ message: 'Erro ao gerar hash da senha.' });
+
+          // Inserir o novo administrador com user e senha criptografados
+          db.run('INSERT INTO adm (nome, user, senha) VALUES (?, ?, ?)', [nome, hashedUser, hashedPassword], function (err) {
+            if (err) return res.status(500).json({ message: 'Erro ao cadastrar administrador.' });
+            return res.status(201).json({ id: this.lastID, message: 'Administrador cadastrado com sucesso!' });
+          });
+        });
+      });
+    }
   });
 });
 
@@ -250,6 +274,7 @@ app.delete('/usuarios/:id_usuario', (req, res) => {
     res.json({ message: 'Usuário excluído com sucesso!' });
   });
 });
+
 
 // Inicia o servidor na porta 3000
 app.listen(3000, () => {
