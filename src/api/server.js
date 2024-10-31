@@ -47,7 +47,6 @@ app.post('/api/login', (req, res) => {
       sameSite: 'Strict', // Ou 'Lax'
       maxAge: 3600000, // 1 hora
     });
-
     return res.status(200).json({ message: 'Login bem-sucedido!', token }); // Incluindo token na resposta
   });
 });
@@ -276,7 +275,29 @@ app.delete('/usuarios/:id_usuario', (req, res) => {
   });
 });
 
+// Rota para cadastro de novo serviço
+app.post('/servicos/novo', (req, res) => {
+  const { tamanho, complexidade, cores, preco } = req.body;
 
+  // Verifica se todos os campos foram fornecidos e possuem valores válidos
+  if (!tamanho || !complexidade || !cores || !preco) {
+    return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
+  }
+
+  // Insere o novo serviço no banco de dados
+  db.run(
+    'INSERT INTO servico (tamanho, complexidade, cores, preco) VALUES (?, ?, ?, ?)',
+    [tamanho, complexidade, cores, preco],
+    function (err) {
+      if (err) {
+        console.error("Erro ao inserir no banco de dados:", err);  // Log para depuração
+        return res.status(500).json({ message: 'Erro ao cadastrar serviço.' });
+      }
+      console.log("Serviço cadastrado com sucesso:", { tamanho, complexidade, cores, preco });
+      return res.status(201).json({ message: 'Serviço cadastrado com sucesso!', id_servico: this.lastID });
+    }
+  );
+});
 
 // Inicia o servidor na porta 3000
 app.listen(3000, () => {

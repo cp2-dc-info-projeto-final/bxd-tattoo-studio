@@ -2,7 +2,7 @@ import { writable } from "svelte/store";
 import { sessionStore } from "./session"; // Importa o store da sessão
 
 // Define o estado atual da página (controle da navegação)
-export const paginaAtual = writable("agendamento");
+export const paginaAtual = writable("adm");
 
 // Função para redirecionar para a página de login
 export const irParaLogin = () => {
@@ -42,6 +42,11 @@ export const irParaCadastro = () => {
 // Função para redirecionar para a página inicial
 export const irParaHome = () => {
   paginaAtual.set("home");
+};
+
+// Função para redirecionar para a página de cadastro de servicos
+export const irParaCadastroSRC = () => {
+  paginaAtual.set("cadsrc");
 };
 
 // Função para logout

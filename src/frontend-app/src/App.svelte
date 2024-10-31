@@ -4,6 +4,11 @@
     irParaLogin,
     irParaCadastro,
     irParaHome,
+    irParaAgendamento,
+    irParaCadastroADM,
+    irParaCadastroSRC,
+    irParaHomeADM,
+    irParaLoginADM
   } from "./stores/navigation";
   import Home from "./pages/Home.svelte";
   import Login from "./pages/Login.svelte";
@@ -12,6 +17,8 @@
   import CadastroAdm from "./pages/CadastroADM.svelte";
   import LoginAdm from "./pages/LoginADM.svelte";
   import HomeAdm from "./pages/HomeADM.svelte";
+  import CadastroSrc from "./pages/CadastroSRC.svelte";
+  import AdmnistracaoPages from "./pages/admnistracaoPages.svelte";
 
   let nome = "";
   let email = "";
@@ -60,3 +67,12 @@
 {#if $paginaAtual === "homeadm"}
   <HomeAdm />
 {/if}
+
+{#if $paginaAtual === "cadsrc"}
+  <CadastroSrc />
+{/if}
+
+{#if $paginaAtual === "adm"}
+  <AdmnistracaoPages />
+{/if}
+
