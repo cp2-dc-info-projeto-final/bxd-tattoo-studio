@@ -133,6 +133,31 @@ app.get('/api/adms/me', (req, res) => {
   });
 });
 
+// Endpoint para verificar a permissão do administrador logado
+app.get('/api/adms/verifica-permissao', (req, res) => {
+  const token = req.cookies.token;
+
+  // Verifica se o token está presente
+  if (!token) return res.status(401).json({ message: 'Não autorizado.' });
+
+  // Verifica e decodifica o token JWT
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(401).json({ message: 'Token inválido.' });
+
+    // Consulta o banco de dados para obter o ID do administrador
+    db.get('SELECT id_adm FROM adm WHERE id_adm = ?', [decoded.id], (err, adm) => {
+      if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
+      if (!adm) return res.status(404).json({ message: 'Administrador não encontrado.' });
+
+      // Define permissao com base no id_adm
+      const permissao = adm.id_adm === 1;
+
+      // Retorna apenas a propriedade permissao
+      res.json({ permissao });
+    });
+  });
+});
+
 // Rota para cadastrar um novo usuário
 app.post('/usuarios/novo', (req, res) => {
   const { nome, email, idade, senha } = req.body;

@@ -13,11 +13,6 @@ export const irParaLoginADM = () => {
   paginaAtual.set("loginadm")
 };
 
-//Cadastro de ADM (Teste)
-export const irParaCadastroADM = () => {
-  paginaAtual.set("cadadm")
-};
-
 //Home de ADM (Teste)
 export const irParaHomeADM = () => {
   paginaAtual.set("homeadm")
@@ -54,6 +49,19 @@ export const logout = () => {
   sessionStore.set(null); // Limpa o token da sessão
   irParaLogin(); // Redireciona para a página de login
 };
+
+// Função para redirecionar para a página de agendamento
+export const irParaCadastroADM = () => {
+  sessionStore.subscribe((token) => {
+    if (!token) {
+      paginaAtual.set("homeadm"); // Redireciona se o usuário não estiver logado
+    } else {
+      paginaAtual.set("agendamento"); // Se estiver logado, redireciona para agendamento
+    }
+  });
+};
+
+export const id_adm = ""
 
 // Define a URL base da API
 export const api_base_url = "http://localhost:3000";
