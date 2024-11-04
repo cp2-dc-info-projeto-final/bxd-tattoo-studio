@@ -13,6 +13,23 @@ app.use(cors({ credentials: true, origin: 'http://localhost:5173' })); // Permit
 app.use(express.json()); // Use express.json() em vez de body-parser
 app.use(cookieParser());
 
+// Middleware para verificar o token JWT
+const verificarToken = (req, res, next) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Não autorizado.' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Token inválido.' });
+    }
+    req.userId = decoded.id; // Armazena o ID do usuário decodificado na requisição
+    next();
+  });
+};
+
 // Função para verificar as credenciais do usuário utilizando bcrypt.compare
 const verificarCredenciais = (email, senha, callback) => {
   db.get('SELECT * FROM usuario WHERE email = ?', [email], (err, row) => {
@@ -52,17 +69,10 @@ app.post('/api/login', (req, res) => {
 });
 
 // Endpoint para verificar o usuário logado
-app.get('/api/usuarios/me', (req, res) => {
-  const token = req.cookies.token;
-
-  if (!token) return res.status(401).json({ message: 'Não autorizado.' });
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(401).json({ message: 'Token inválido.' });
-    db.get('SELECT * FROM usuario WHERE id_usuario = ?', [decoded.id], (err, usuario) => {
-      if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
-      res.json(usuario);
-    });
+app.get('/api/usuarios/me', verificarToken, (req, res) => {
+  db.get('SELECT * FROM usuario WHERE id_usuario = ?', [req.userId], (err, usuario) => {
+    if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
+    res.json(usuario);
   });
 });
 
@@ -117,44 +127,11 @@ app.post('/api/login/adm', (req, res) => {
 });
 
 // Endpoint para verificar o adm logado
-app.get('/api/adms/me', (req, res) => {
-  const token = req.cookies.token;
-
-  if (!token) return res.status(401).json({ message: 'Não autorizado.' });
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(401).json({ message: 'Token inválido.' });
-
-    db.get('SELECT * FROM adm WHERE id_adm = ?', [decoded.id], (err, adm) => {
-      if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
-      if (!adm) return res.status(404).json({ message: 'Administrador não encontrado.' });
-      res.json(adm);
-    });
-  });
-});
-
-// Endpoint para verificar a permissão do administrador logado
-app.get('/api/adms/verifica-permissao', (req, res) => {
-  const token = req.cookies.token;
-
-  // Verifica se o token está presente
-  if (!token) return res.status(401).json({ message: 'Não autorizado.' });
-
-  // Verifica e decodifica o token JWT
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(401).json({ message: 'Token inválido.' });
-
-    // Consulta o banco de dados para obter o ID do administrador
-    db.get('SELECT id_adm FROM adm WHERE id_adm = ?', [decoded.id], (err, adm) => {
-      if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
-      if (!adm) return res.status(404).json({ message: 'Administrador não encontrado.' });
-
-      // Define permissao com base no id_adm
-      const permissao = adm.id_adm === 1;
-
-      // Retorna apenas a propriedade permissao
-      res.json({ permissao });
-    });
+app.get('/api/adms/me', verificarToken, (req, res) => {
+  db.get('SELECT * FROM adm WHERE id_adm = ?', [req.userId], (err, adm) => {
+    if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
+    if (!adm) return res.status(404).json({ message: 'Administrador não encontrado.' });
+    res.json(adm);
   });
 });
 
@@ -201,7 +178,6 @@ app.post('/adm/novo', async (req, res) => {
   db.all('SELECT user FROM adm', [], (err, rows) => {
     if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
 
-
     // Verifica se algum usuário criptografado corresponde ao user fornecido
     const userExists = rows.some(row => {
       return bcrypt.compareSync(user, row.user); // Compare com a string criptografada
@@ -230,101 +206,32 @@ app.post('/adm/novo', async (req, res) => {
   });
 });
 
-
 // Rota de logout
 app.post('/api/logout', (req, res) => {
-  res.clearCookie('token', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Strict',
-  });
-  return res.status(200).json({ message: 'Logout realizado com sucesso!' });
+  res.clearCookie('token'); // Limpa o cookie do token
+  return res.status(200).json({ message: 'Logout bem-sucedido.' });
 });
 
-// Rota para listar todos os usuários (protegida por autenticação)
-app.get('/usuarios', (req, res) => {
-  const token = req.cookies.token;
-
-  if (!token) return res.status(401).json({ message: 'Não autorizado.' });
-
-  jwt.verify(token, process.env.JWT_SECRET, (err) => {
-    if (err) return res.status(401).json({ message: 'Token inválido.' });
-
-    db.all('SELECT id_usuario, nome, email, idade FROM usuario', [], (err, rows) => {
-      if (err) return res.status(500).json({ message: 'Erro ao listar usuários.' });
-      res.json({ usuarios: rows });
-    });
+// Rota para listar todos os usuários
+app.get('/usuarios', verificarToken, (req, res) => {
+  db.all('SELECT * FROM usuario', [], (err, usuarios) => {
+    if (err) return res.status(500).json({ message: 'Erro ao listar usuários.' });
+    res.json(usuarios);
   });
 });
 
-// Rota para editar um usuário
-app.put('/usuarios/:id_usuario', (req, res) => {
+// Rota para deletar um usuário por ID
+app.delete('/usuarios/:id_usuario', verificarToken, (req, res) => {
   const { id_usuario } = req.params;
-  const { nome, email, idade, senha } = req.body;
 
-  const usuarioAtualizado = { nome, email, idade };
-
-  // Se a senha foi fornecida, atualizar a senha após criptografá-la
-  if (senha) {
-    bcrypt.hash(senha, 10, (err, hashedPassword) => {
-      if (err) {
-        return res.status(500).json({ message: 'Erro ao gerar hash da senha.' });
-      }
-      usuarioAtualizado.senha = hashedPassword;
-
-      // Atualiza o usuário no banco de dados
-      db.run('UPDATE usuario SET nome = ?, email = ?, idade = ?, senha = ? WHERE id_usuario = ?',
-        [usuarioAtualizado.nome, usuarioAtualizado.email, usuarioAtualizado.idade, usuarioAtualizado.senha, id_usuario],
-        function (err) {
-          if (err) return res.status(500).json({ message: 'Erro ao atualizar usuário.' });
-          res.json({ message: 'Usuário atualizado com sucesso!' });
-        });
-    });
-  } else {
-    // Se não houver senha, apenas atualiza os outros campos
-    db.run('UPDATE usuario SET nome = ?, email = ?, idade = ? WHERE id_usuario = ?',
-      [usuarioAtualizado.nome, usuarioAtualizado.email, usuarioAtualizado.idade, id_usuario],
-      function (err) {
-        if (err) return res.status(500).json({ message: 'Erro ao atualizar usuário.' });
-        res.json({ message: 'Usuário atualizado com sucesso!' });
-      });
-  }
-});
-
-// Rota para excluir um usuário por ID
-app.delete('/usuarios/:id_usuario', (req, res) => {
-  const { id_usuario } = req.params;
-  db.run('DELETE FROM usuario WHERE id_usuario = ?', [id_usuario], function (err) {
-    if (err) return res.status(500).json({ message: 'Erro ao excluir usuário.' });
-    res.json({ message: 'Usuário excluído com sucesso!' });
+  db.run('DELETE FROM usuario WHERE id_usuario = ?', [id_usuario], function(err) {
+    if (err) return res.status(500).json({ message: 'Erro ao deletar usuário.' });
+    res.json({ message: 'Usuário deletado com sucesso.' });
   });
 });
 
-// Rota para cadastro de novo serviço
-app.post('/servicos/novo', (req, res) => {
-  const { tamanho, complexidade, cores, preco } = req.body;
-
-  // Verifica se todos os campos foram fornecidos e possuem valores válidos
-  if (!tamanho || !complexidade || !cores || !preco) {
-    return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
-  }
-
-  // Insere o novo serviço no banco de dados
-  db.run(
-    'INSERT INTO servico (tamanho, complexidade, cores, preco) VALUES (?, ?, ?, ?)',
-    [tamanho, complexidade, cores, preco],
-    function (err) {
-      if (err) {
-        console.error("Erro ao inserir no banco de dados:", err);  // Log para depuração
-        return res.status(500).json({ message: 'Erro ao cadastrar serviço.' });
-      }
-      console.log("Serviço cadastrado com sucesso:", { tamanho, complexidade, cores, preco });
-      return res.status(201).json({ message: 'Serviço cadastrado com sucesso!', id_servico: this.lastID });
-    }
-  );
-});
-
-// Inicia o servidor na porta 3000
-app.listen(3000, () => {
-  console.log('Servidor rodando na porta 3000');
+// Inicia o servidor
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
