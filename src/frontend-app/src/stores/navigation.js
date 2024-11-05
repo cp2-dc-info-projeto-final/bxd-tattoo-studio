@@ -61,7 +61,6 @@ export const irParaCadastroADM = () => {
   });
 };
 
-export const id_adm = ""
 
 // Define a URL base da API
 export const api_base_url = "http://localhost:3000";

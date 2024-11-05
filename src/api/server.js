@@ -220,15 +220,103 @@ app.get('/usuarios', verificarToken, (req, res) => {
   });
 });
 
-// Rota para deletar um usuário por ID
-app.delete('/usuarios/:id_usuario', verificarToken, (req, res) => {
-  const { id_usuario } = req.params;
 
-  db.run('DELETE FROM usuario WHERE id_usuario = ?', [id_usuario], function(err) {
-    if (err) return res.status(500).json({ message: 'Erro ao deletar usuário.' });
-    res.json({ message: 'Usuário deletado com sucesso.' });
+// Rota para editar um usuário
+app.put('/usuarios/:id_usuario', (req, res) => {
+  const { id_usuario } = req.params;
+  const { nome, email, idade, senha } = req.body;
+
+  const usuarioAtualizado = { nome, email, idade };
+
+  // Se a senha foi fornecida, atualizar a senha após criptografá-la
+  if (senha) {
+    bcrypt.hash(senha, 10, (err, hashedPassword) => {
+      if (err) {
+        return res.status(500).json({ message: 'Erro ao gerar hash da senha.' });
+      }
+      usuarioAtualizado.senha = hashedPassword;
+
+      // Atualiza o usuário no banco de dados
+      db.run('UPDATE usuario SET nome = ?, email = ?, idade = ?, senha = ? WHERE id_usuario = ?', 
+        [usuarioAtualizado.nome, usuarioAtualizado.email, usuarioAtualizado.idade, usuarioAtualizado.senha, id_usuario], 
+        function (err) {
+          if (err) return res.status(500).json({ message: 'Erro ao atualizar usuário.' });
+          res.json({ message: 'Usuário atualizado com sucesso!' });
+        });
+    });
+  } else {
+    // Se não houver senha, apenas atualiza os outros campos
+    db.run('UPDATE usuario SET nome = ?, email = ?, idade = ? WHERE id_usuario = ?', 
+      [usuarioAtualizado.nome, usuarioAtualizado.email, usuarioAtualizado.idade, id_usuario], 
+      function (err) {
+        if (err) return res.status(500).json({ message: 'Erro ao atualizar usuário.' });
+        res.json({ message: 'Usuário atualizado com sucesso!' });
+      });
+  }
+});
+
+
+
+// Rota para editar um adm
+app.put('/adms/:id_adm', (req, res) => {
+  const { id_adm } = req.params;
+  const { nome, user } = req.body;
+
+  const admAtualizado = { nome, user };
+
+  db.run('UPDATE adm SET nome = ?, user = ? WHERE id_adm = ?',
+    [admAtualizado.nome, admAtualizado.user, id_adm],
+    function (err) {
+      if (err) return res.status(500).json({ message: 'Erro ao atualizar adm.' });
+      res.json({ message: 'Adm atualizado com sucesso!' });
+    });
+});
+
+
+// Rota para editar um servico
+app.put('/servicos/:id_servico', (req, res) => {
+  const { id_servico } = req.params;
+  const { tamanho, complexidade, cores, preco } = req.body;
+
+  const servicoAtualizado = { tamanho, complexidade, cores, preco };
+
+  db.run('UPDATE servico SET tamanho = ?, compexidade = ?, cores = ?, preco = ? WHERE id_servico = ?',
+    [servicoAtualizado.tamanho, servicoAtualizado.complexidade, servicoAtualizado.cores, servicoAtualizado.preco, id_servico],
+    function (err) {
+      if (err) return res.status(500).json({ message: 'Erro ao atualizar serviço.' });
+      res.json({ message: 'Serviço atualizado com sucesso!' });
+    });
+});
+
+
+// Rota para excluir um usuário por ID
+app.delete('/usuarios/:id_usuario', (req, res) => {
+  const { id_usuario } = req.params;
+  db.run('DELETE FROM usuario WHERE id_usuario = ?', [id_usuario], function (err) {
+    if (err) return res.status(500).json({ message: 'Erro ao excluir usuário.' });
+    res.json({ message: 'Usuário excluído com sucesso!' });
   });
 });
+
+// Rota para excluir um adm por ID
+app.delete('/adms/:id_adm', (req, res) => {
+  const { id_adm } = req.params;
+  db.run('DELETE FROM usuario WHERE id_usuario = ?', [id_adm], function (err) {
+    if (err) return res.status(500).json({ message: 'Erro ao excluir adm.' });
+    res.json({ message: 'Adms excluído com sucesso!' });
+  });
+});
+
+
+// Rota para excluir um servico por ID
+app.delete('/servicos/:id_servico', (req, res) => {
+  const { id_servico } = req.params;
+  db.run('DELETE FROM servico WHERE id_servico = ?', [id_servico], function (err) {
+    if (err) return res.status(500).json({ message: 'Erro ao excluir serviço.' });
+    res.json({ message: 'Serviço excluído com sucesso!' });
+  });
+});
+
 
 // Inicia o servidor
 const PORT = process.env.PORT || 3000;
