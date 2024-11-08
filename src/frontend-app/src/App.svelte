@@ -15,7 +15,7 @@
   import Cadastro from "./pages/Cadastro.svelte";
   import Agendamento from "./pages/Agendamento.svelte";
   import CadastroAdm from "./pages/CadastroADM.svelte";
-  import LoginAdm from "./pages/LoginADM.svelte";
+  import LoginAdm from "./pages/LoginPrincipal.svelte";
   import HomeAdm from "./pages/HomeADM.svelte";
   import CadastroSrc from "./pages/CadastroSRC.svelte";
   import AdmnistracaoPages from "./pages/admnistracaoPages.svelte";

@@ -22,9 +22,9 @@ export const irParaHomeADM = () => {
 export const irParaAgendamento = () => {
   sessionStore.subscribe((token) => {
     if (!token) {
-      paginaAtual.set("login"); // Redireciona se o usuário não estiver logado
+      paginaAtual.set('login'); // Redireciona se o usuário não estiver logado
     } else {
-      paginaAtual.set("agendamento"); // Se estiver logado, redireciona para agendamento
+      paginaAtual.set('agendamento'); // Se estiver logado, redireciona para agendamento
     }
   });
 };
