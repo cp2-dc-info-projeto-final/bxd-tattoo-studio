@@ -1,6 +1,6 @@
 <script>
   import { sessionStore } from "../stores/session"; // Para armazenar o token
-  import { irParaHome, irParaCadastro, irParaCadastroADM, irParaLoginADM} from "../stores/navigation"; // Para redirecionar
+  import { irParaHome, irParaCadastro, irParaLoginADM, irParaHomeADM } from "../stores/navigation"; // Para redirecionar
   import { api_base_url } from "../stores/navigation"; // Base da URL da API
 
   let email = "";
@@ -30,7 +30,13 @@
         sessionStore.set(data.token); // Armazena o token JWT no sessionStore
         email = "";
         senha = "";
-        irParaHome(); // Redireciona para a página inicial
+
+        // Diferenciação de usuário
+        if (data.role === "admin") {
+          irParaHomeADM(); // Redireciona para a home do admin
+        } else {
+          irParaHome(); // Redireciona para a página inicial do usuário
+        }
       } else {
         resultado = null;
         error = true;
@@ -62,8 +68,6 @@
         </form>
         <p class="fs-5 pt-">Não possui cadastro?</p>
         <button on:click={irParaCadastro} class="btn btn-success w-100">Cadastre-se</button>
-        <p class="fs-5 pt-">Logar ADM?</p>
-        <button on:click={irParaLoginADM} class="btn btn-success w-100">Logar ADM</button>
         {#if error}
           <p style="color: red;">{mensagem}</p>
         {/if}
