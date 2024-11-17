@@ -3,7 +3,7 @@
   import { irParaHome, irParaCadastro, irParaLoginADM, irParaHomeADM } from "../stores/navigation"; // Para redirecionar
   import { api_base_url } from "../stores/navigation"; // Base da URL da API
 
-  let email = "";
+  let userOrEmail = "";
   let senha = "";
   let error = false;
   let mensagem = "";
@@ -17,7 +17,7 @@
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, senha }),
+        body: JSON.stringify({ userOrEmail, senha }),
         credentials: 'include' // Importante para que cookies de sessão JWT sejam enviados e recebidos
       });
 
@@ -28,7 +28,7 @@
         error = false;
         mensagem = ""; // Limpa a mensagem de erro
         sessionStore.set(data.token); // Armazena o token JWT no sessionStore
-        email = "";
+        userOrEmail = "";
         senha = "";
 
         // Diferenciação de usuário
@@ -57,8 +57,8 @@
         <h2 class="text-center mb-4">Login</h2>
         <form on:submit|preventDefault={fazerLogin}>
           <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" bind:value={email} placeholder="Digite seu email" required />
+            <label for="userOrEmail" class="form-label">userOrEmail</label>
+            <input type="text" class="form-control" id="userOrEmail" bind:value={userOrEmail} placeholder="Digite seu login" required />
           </div>
           <div class="mb-3">
             <label for="senha" class="form-label">Senha</label>

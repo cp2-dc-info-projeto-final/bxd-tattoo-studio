@@ -13,6 +13,30 @@ app.use(cors({ credentials: true, origin: 'http://localhost:5173' })); // Permit
 app.use(express.json()); // Use express.json() em vez de body-parser
 app.use(cookieParser());
 
+const verificarTokenAdm = (req, res, next) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Não autorizado. Token não encontrado.' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Token inválido.' });
+    }
+
+    // Verifica se o token pertence a um administrador
+    db.get('SELECT * FROM adm WHERE id_adm = ?', [decoded.id], (err, adm) => {
+      if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
+      if (!adm) return res.status(403).json({ message: 'Não autorizado. Acesso restrito a administradores.' });
+
+      req.userId = decoded.id; // Adiciona o ID do administrador no request
+      next();
+    });
+  });
+};
+
+
 // Middleware para verificar o token JWT
 const verificarToken = (req, res, next) => {
   const token = req.cookies.token;
@@ -30,8 +54,9 @@ const verificarToken = (req, res, next) => {
   });
 };
 
-// Função para verificar as credenciais do usuário utilizando bcrypt.compare
-const verificarCredenciais = (email, senha, callback) => {
+
+// Função para verificar as credenciais do usuário
+const verificarCredenciaisUsuario = (email, senha, callback) => {
   db.get('SELECT * FROM usuario WHERE email = ?', [email], (err, row) => {
     if (err) return callback(err);
     if (!row) return callback(null, null); // Usuário não encontrado
@@ -47,26 +72,6 @@ const verificarCredenciais = (email, senha, callback) => {
   });
 };
 
-// Rota de login
-app.post('/api/login', (req, res) => {
-  const { email, senha } = req.body;
-
-  verificarCredenciais(email, senha, (err, usuario) => {
-    if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
-    if (!usuario) return res.status(401).json({ message: 'Credenciais inválidas.' });
-
-    const token = jwt.sign({ id: usuario.id_usuario }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-    // Configure o cookie com o token
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Use HTTPS em produção
-      sameSite: 'Strict', // Ou 'Lax'
-      maxAge: 3600000, // 1 hora
-    });
-    return res.status(200).json({ message: 'Login bem-sucedido!', token }); // Incluindo token na resposta
-  });
-});
 
 // Endpoint para verificar o usuário logado
 app.get('/api/usuarios/me', verificarToken, (req, res) => {
@@ -75,6 +80,7 @@ app.get('/api/usuarios/me', verificarToken, (req, res) => {
     res.json(usuario);
   });
 });
+
 
 // Função para verificar as credenciais do administrador
 const verificarCredenciaisADM = (user, senha, callback) => {
@@ -102,32 +108,56 @@ const verificarCredenciaisADM = (user, senha, callback) => {
   });
 };
 
-// Rota de login ADM
-app.post('/api/login/adm', (req, res) => {
-  const { user, senha } = req.body;
 
-  verificarCredenciaisADM(user, senha, (err, adm) => {
+// Rota unificada de login
+app.post('/api/login', (req, res) => {
+  const { userOrEmail, senha } = req.body;
+
+  // Verifica primeiro se é um administrador
+  verificarCredenciaisADM(userOrEmail, senha, (err, adm) => {
     if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
-    if (!adm) return res.status(401).json({ message: 'Credenciais inválidas.' });
+    if (adm) {
+      // Criação do token JWT para administrador
+      const token = jwt.sign({ id: adm.id_adm, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    // Criação do token JWT se as credenciais forem válidas
-    const token = jwt.sign({ id: adm.id_adm }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      // Configuração do cookie com o token
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 3600000,
+      });
 
-    // Configuração do cookie com o token
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Usar secure se em produção
-      sameSite: 'Strict', // Proteger contra CSRF
-      maxAge: 3600000, // 1 hora
+      
+      return res.status(200).json({ message: 'Login bem-sucedido como administrador!', token });
+    }
+
+    // Caso não seja um administrador, verifica se é um usuário
+    verificarCredenciaisUsuario(userOrEmail, senha, (err, usuario) => {
+      if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
+      if (usuario) {
+        // Criação do token JWT para usuário
+        const token = jwt.sign({ id: usuario.id_usuario, role: 'user' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        // Configuração do cookie com o token
+        res.cookie('token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'Strict',
+          maxAge: 3600000,
+        });
+
+        return res.status(200).json({ message: 'Login bem-sucedido como usuário!', token });
+      }
+
+      // Caso não seja nem administrador nem usuário
+      return res.status(401).json({ message: 'Credenciais inválidas.' });
     });
-
-    // Resposta ao cliente indicando sucesso no login
-    return res.status(200).json({ message: 'Login bem-sucedido!', token });
   });
 });
 
 // Endpoint para verificar o adm logado
-app.get('/api/adms/me', verificarToken, (req, res) => {
+app.get('/api/adms/me', verificarTokenAdm, (req, res) => {
   db.get('SELECT * FROM adm WHERE id_adm = ?', [req.userId], (err, adm) => {
     if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
     if (!adm) return res.status(404).json({ message: 'Administrador não encontrado.' });
@@ -166,7 +196,7 @@ app.post('/usuarios/novo', (req, res) => {
 });
 
 // Rota de cadastro de novo administrador
-app.post('/adm/novo', async (req, res) => {
+app.post('/adm/novo', verificarTokenAdm, async (req, res) => {
   const { nome, user, senha, conf_senha } = req.body;
 
   // Verifica se a senha e a confirmação da senha são iguais
@@ -213,7 +243,7 @@ app.post('/api/logout', (req, res) => {
 });
 
 // Rota para listar todos os usuários
-app.get('/usuarios', verificarToken, (req, res) => {
+app.get('/usuarios', verificarTokenAdm, (req, res) => {
   db.all('SELECT * FROM usuario', [], (err, usuarios) => {
     if (err) return res.status(500).json({ message: 'Erro ao listar usuários.' });
     res.json(usuarios);
@@ -222,7 +252,7 @@ app.get('/usuarios', verificarToken, (req, res) => {
 
 
 // Rota para editar um usuário
-app.put('/usuarios/:id_usuario', (req, res) => {
+app.put('/usuarios/:id_usuario', verificarTokenAdm, (req, res) => {
   const { id_usuario } = req.params;
   const { nome, email, idade, senha } = req.body;
 
@@ -258,7 +288,7 @@ app.put('/usuarios/:id_usuario', (req, res) => {
 
 
 // Rota para editar um adm
-app.put('/adms/:id_adm', (req, res) => {
+app.put('/adms/:id_adm', verificarTokenAdm, (req, res) => {
   const { id_adm } = req.params;
   const { nome, user } = req.body;
 
@@ -274,7 +304,7 @@ app.put('/adms/:id_adm', (req, res) => {
 
 
 // Rota para editar um servico
-app.put('/servicos/:id_servico', (req, res) => {
+app.put('/servicos/:id_servico', verificarTokenAdm, (req, res) => {
   const { id_servico } = req.params;
   const { tamanho, complexidade, cores, preco } = req.body;
 
@@ -290,7 +320,7 @@ app.put('/servicos/:id_servico', (req, res) => {
 
 
 // Rota para excluir um usuário por ID
-app.delete('/usuarios/:id_usuario', (req, res) => {
+app.delete('/usuarios/:id_usuario', verificarTokenAdm, (req, res) => {
   const { id_usuario } = req.params;
   db.run('DELETE FROM usuario WHERE id_usuario = ?', [id_usuario], function (err) {
     if (err) return res.status(500).json({ message: 'Erro ao excluir usuário.' });
@@ -309,7 +339,7 @@ app.delete('/adms/:id_adm', (req, res) => {
 
 
 // Rota para excluir um servico por ID
-app.delete('/servicos/:id_servico', (req, res) => {
+app.delete('/servicos/:id_servico', verificarTokenAdm, (req, res) => {
   const { id_servico } = req.params;
   db.run('DELETE FROM servico WHERE id_servico = ?', [id_servico], function (err) {
     if (err) return res.status(500).json({ message: 'Erro ao excluir serviço.' });
