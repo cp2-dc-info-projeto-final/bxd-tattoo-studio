@@ -1,6 +1,6 @@
 <script>
   import { sessionStore } from "../stores/session"; // Para armazenar o token
-  import { irParaHome, irParaCadastro, irParaLoginADM, irParaHomeADM } from "../stores/navigation"; // Para redirecionar
+  import { irParaHome, irParaCadastro, irParaHomeADM } from "../stores/navigation"; // Para redirecionar
   import { api_base_url } from "../stores/navigation"; // Base da URL da API
 
   let userOrEmail = "";
@@ -8,46 +8,53 @@
   let error = false;
   let mensagem = "";
   let resultado = null;
-
-  // Função para fazer login
   const fazerLogin = async () => {
-    try {
-      const res = await fetch(`${api_base_url}/api/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userOrEmail, senha }),
-        credentials: 'include' // Importante para que cookies de sessão JWT sejam enviados e recebidos
-      });
+  try {
+    const res = await fetch(`${api_base_url}/api/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userOrEmail, senha }),
+      credentials: 'include',
+    });
 
-      // Tratamento da resposta
-      const data = await res.json();
-      if (res.ok) {
-        resultado = { message: "Login bem-sucedido!" };
-        error = false;
-        mensagem = ""; // Limpa a mensagem de erro
-        sessionStore.set(data.token); // Armazena o token JWT no sessionStore
-        userOrEmail = "";
-        senha = "";
+    const data = await res.json();
+    console.log("Resposta da API:", data); // Log completo da resposta para depuração
 
-        // Diferenciação de usuário
-        if (data.role === "admin") {
-          irParaHomeADM(); // Redireciona para a home do admin
-        } else {
-          irParaHome(); // Redireciona para a página inicial do usuário
-        }
+    if (res.ok) {
+      resultado = { message: "Login bem-sucedido!" };
+      error = false;
+      mensagem = "";
+
+      sessionStore.set(data.token);
+
+      userOrEmail = "";
+      senha = "";
+
+      if (data.role === "admin") {
+        console.log("Usuário é administrador. Redirecionando para home do admin.");
+        irParaHomeADM();
+      } else if (data.role === "user") {
+        console.log("Usuário é regular. Redirecionando para home.");
+        irParaHome();
       } else {
-        resultado = null;
-        error = true;
-        mensagem = data.error || data.message || "Erro ao fazer login.";
+        console.warn("Role não reconhecido. Redirecionando para home padrão.");
+        irParaHome(); // Fallback para home padrão
       }
-    } catch (err) {
+    } else {
+      console.error("Erro no login:", data.message || "Erro desconhecido");
+      resultado = null;
       error = true;
-      mensagem = "Erro de conexão. Tente novamente.";
-      console.error("Erro de conexão:", err); // Log do erro para debug
+      mensagem = data.message || "Erro ao fazer login.";
     }
-  };
+  } catch (err) {
+    console.error("Erro de conexão:", err);
+    error = true;
+    mensagem = "Erro de conexão. Tente novamente.";
+  }
+};
+
 </script>
 
 <main>

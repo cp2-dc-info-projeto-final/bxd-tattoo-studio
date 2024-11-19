@@ -14,6 +14,7 @@ app.use(express.json()); // Use express.json() em vez de body-parser
 app.use(cookieParser());
 
 const verificarTokenAdm = (req, res, next) => {
+  console.log("Cookies recebidos:", req.cookies); // Para verificar se o token está presente
   const token = req.cookies.token;
 
   if (!token) {
@@ -81,26 +82,21 @@ app.get('/api/usuarios/me', verificarToken, (req, res) => {
   });
 });
 
-
 // Função para verificar as credenciais do administrador
 const verificarCredenciaisADM = (user, senha, callback) => {
-  db.all('SELECT * FROM adm', [], (err, rows) => {
+  // Busca o administrador pelo username no banco de dados
+  db.get('SELECT * FROM adm WHERE user = ?', [user], (err, row) => {
     if (err) return callback(err);
 
-    // Itera sobre cada linha para encontrar o usuário
-    const usuarioCorrespondente = rows.find(row => {
-      return bcrypt.compareSync(user, row.user); // Comparação do user criptografado
-    });
-
-    if (!usuarioCorrespondente) {
+    if (!row) {
       return callback(null, null); // Administrador não encontrado
     }
 
-    // Comparação da senha criptografada com a senha fornecida
-    bcrypt.compare(senha, usuarioCorrespondente.senha, (err, isPasswordMatch) => {
+    // Comparação da senha fornecida com a senha armazenada (criptografada)
+    bcrypt.compare(senha, row.senha, (err, isPasswordMatch) => {
       if (err) return callback(err);
       if (isPasswordMatch) {
-        return callback(null, usuarioCorrespondente); // Credenciais corretas
+        return callback(null, row); // Credenciais corretas
       } else {
         return callback(null, null); // Senha incorreta
       }
@@ -108,19 +104,15 @@ const verificarCredenciaisADM = (user, senha, callback) => {
   });
 };
 
-
-// Rota unificada de login
 app.post('/api/login', (req, res) => {
   const { userOrEmail, senha } = req.body;
 
-  // Verifica primeiro se é um administrador
+  // Verifica credenciais de administrador
   verificarCredenciaisADM(userOrEmail, senha, (err, adm) => {
     if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
     if (adm) {
-      // Criação do token JWT para administrador
       const token = jwt.sign({ id: adm.id_adm, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-      // Configuração do cookie com o token
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -128,18 +120,19 @@ app.post('/api/login', (req, res) => {
         maxAge: 3600000,
       });
 
-      
-      return res.status(200).json({ message: 'Login bem-sucedido como administrador!', token });
+      return res.status(200).json({
+        message: 'Login bem-sucedido como administrador!',
+        token,
+        role: 'admin', // Inclua o role explicitamente
+      });
     }
 
-    // Caso não seja um administrador, verifica se é um usuário
+    // Verifica credenciais de usuário
     verificarCredenciaisUsuario(userOrEmail, senha, (err, usuario) => {
       if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
       if (usuario) {
-        // Criação do token JWT para usuário
         const token = jwt.sign({ id: usuario.id_usuario, role: 'user' }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        // Configuração do cookie com o token
         res.cookie('token', token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
@@ -147,14 +140,18 @@ app.post('/api/login', (req, res) => {
           maxAge: 3600000,
         });
 
-        return res.status(200).json({ message: 'Login bem-sucedido como usuário!', token });
+        return res.status(200).json({
+          message: 'Login bem-sucedido como usuário!',
+          token,
+          role: 'user', // Inclua o role explicitamente
+        });
       }
 
-      // Caso não seja nem administrador nem usuário
       return res.status(401).json({ message: 'Credenciais inválidas.' });
     });
   });
 });
+
 
 // Endpoint para verificar o adm logado
 app.get('/api/adms/me', verificarTokenAdm, (req, res) => {
@@ -205,15 +202,10 @@ app.post('/adm/novo', verificarTokenAdm, async (req, res) => {
   }
 
   // Verifica se o usuário já existe no banco de dados
-  db.all('SELECT user FROM adm', [], (err, rows) => {
+  db.get('SELECT user FROM adm WHERE user = ?', [user], (err, row) => {
     if (err) return res.status(500).json({ message: 'Erro interno do servidor.' });
 
-    // Verifica se algum usuário criptografado corresponde ao user fornecido
-    const userExists = rows.some(row => {
-      return bcrypt.compareSync(user, row.user); // Compare com a string criptografada
-    });
-
-    if (userExists) {
+    if (row) {
       return res.status(409).json({ message: 'Usuário já existe.' }); // Usuário já cadastrado
     }
 
@@ -221,17 +213,16 @@ app.post('/adm/novo', verificarTokenAdm, async (req, res) => {
     bcrypt.hash(senha, 10, (err, hashedPassword) => {
       if (err) return res.status(500).json({ message: 'Erro ao criptografar a senha.' });
 
-      // Criptografa o usuário
-      bcrypt.hash(user, 10, (err, hashedUser) => {
-        if (err) return res.status(500).json({ message: 'Erro ao criptografar o usuário.' });
-
-        // Insere o novo administrador no banco de dados
-        db.run('INSERT INTO adm (nome, user, senha) VALUES (?, ?, ?)', [nome, hashedUser, hashedPassword], function(err) {
+      // Insere o novo administrador no banco de dados
+      db.run(
+        'INSERT INTO adm (nome, user, senha) VALUES (?, ?, ?)',
+        [nome, user, hashedPassword],
+        function (err) {
           if (err) return res.status(500).json({ message: 'Erro ao cadastrar administrador.' });
 
           return res.status(201).json({ message: 'Administrador cadastrado com sucesso!', id_adm: this.lastID });
-        });
-      });
+        }
+      );
     });
   });
 });
@@ -331,7 +322,7 @@ app.delete('/usuarios/:id_usuario', verificarTokenAdm, (req, res) => {
 // Rota para excluir um adm por ID
 app.delete('/adms/:id_adm', (req, res) => {
   const { id_adm } = req.params;
-  db.run('DELETE FROM usuario WHERE id_usuario = ?', [id_adm], function (err) {
+  db.run('DELETE FROM adm WHERE id_adm = ?', [id_adm], function (err) {
     if (err) return res.status(500).json({ message: 'Erro ao excluir adm.' });
     res.json({ message: 'Adms excluído com sucesso!' });
   });

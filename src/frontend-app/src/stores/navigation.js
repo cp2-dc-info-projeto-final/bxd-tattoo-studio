@@ -14,8 +14,14 @@ export const irParaLoginADM = () => {
 };
 
 //Home de ADM (Teste)
-export const irParaHomeADM = () => {
-  paginaAtual.set("homeadm")
+export const irParaHomeADM  = () => {
+  sessionStore.subscribe((token) => {
+    if (!token) {
+      paginaAtual.set('login'); // Redireciona se o usuário não estiver logado
+    } else {
+      paginaAtual.set('homeadm'); // Se estiver logado, redireciona para agendamento
+    }
+  });
 };
 
 // Função para redirecionar para a página de agendamento
@@ -52,13 +58,7 @@ export const logout = () => {
 
 // Função para redirecionar para a página de agendamento
 export const irParaCadastroADM = () => {
-  sessionStore.subscribe((token) => {
-    if (!token) {
-      paginaAtual.set("homeadm"); // Redireciona se o usuário não estiver logado
-    } else {
-      paginaAtual.set("agendamento"); // Se estiver logado, redireciona para agendamento
-    }
-  });
+  paginaAtual.set("cadadm");
 };
 
 
