@@ -1,4 +1,5 @@
 <script>
+//Login.svelte  
   import { sessionStore } from "../stores/session"; // Para armazenar o token
   import { irParaHome, irParaCadastro, irParaHomeADM } from "../stores/navigation"; // Para redirecionar
   import { api_base_url } from "../stores/navigation"; // Base da URL da API
@@ -33,13 +34,13 @@
       senha = "";
 
       if (data.role === "admin") {
-        console.log("Usuário é administrador. Redirecionando para home do admin.");
+        alert("Usuário é administrador. Redirecionando para home do admin.");
         irParaHomeADM();
       } else if (data.role === "user") {
-        console.log("Usuário é regular. Redirecionando para home.");
+        alert("Usuário é regular. Redirecionando para home.");
         irParaHome();
       } else {
-        console.warn("Role não reconhecido. Redirecionando para home padrão.");
+        alert("Role não reconhecido. Redirecionando para home padrão.");
         irParaHome(); // Fallback para home padrão
       }
     } else {

@@ -14,42 +14,24 @@
   import Login from "./pages/Login.svelte";
   import Cadastro from "./pages/Cadastro.svelte";
   import Agendamento from "./pages/Agendamento.svelte";
-  import CadastroAdm from "./pages/CadastroADM.svelte";
-  import LoginAdm from "./pages/LoginPrincipal.svelte";
-  import HomeAdm from "./pages/HomeADM.svelte";
+  import AdministracaoAdmins from "./pages/components/AdministracaoAdmins.svelte";
+  import AdministracaoUsuarios from "./pages/components/AdministracaoUsuarios.svelte";
+  import AdministracaoServicos from "./pages/components/AdministracaoServicos.svelte";
+  import HomeAdm from "./pages/HomeAdm.svelte";
   import CadastroSrc from "./pages/CadastroSRC.svelte";
   import AdmnistracaoPages from "./pages/admnistracaoPages.svelte";
-
-  let nome = "";
-  let email = "";
-  let senha = "";
-  let idade = "";
-  let conf_senha = "";
-  let usuarios = null;
-  let colunas_usuarios = null;
-  let mensagem = "";
-  let error = false;
-  let resultado = null;
 </script>
 
 {#if $paginaAtual === "home"}
-  <Home {irParaLogin} {irParaCadastro} />
+  <Home />
 {/if}
 
 {#if $paginaAtual === "login"}
-  <Login
-    {email}
-    {senha}
-    {error}
-    {usuarios}
-    {colunas_usuarios}
-    {mensagem}
-    {resultado}
-  />
+  <Login />
 {/if}
 
 {#if $paginaAtual === "cadastro"}
-  <Cadastro {nome} {email} {idade} {senha} {conf_senha} {error} {resultado} />
+  <Cadastro />
 {/if}
 
 {#if $paginaAtual === "agendamento"}
@@ -57,11 +39,7 @@
 {/if}
 
 {#if $paginaAtual === "cadadm"}
-  <CadastroAdm />
-{/if}
-
-{#if $paginaAtual === "loginadm"}
-  <LoginAdm />
+  <CadastrarAdmin />
 {/if}
 
 {#if $paginaAtual === "homeadm"}
@@ -74,5 +52,17 @@
 
 {#if $paginaAtual === "adm"}
   <AdmnistracaoPages />
+{/if}
+
+{#if $paginaAtual === "admadm"}
+  <AdministracaoAdmins />
+{/if}
+
+{#if $paginaAtual === "admuser"}
+  <AdministracaoUsuarios />
+{/if}
+
+{#if $paginaAtual === "admservico"}
+  <AdministracaoServicos />
 {/if}
 

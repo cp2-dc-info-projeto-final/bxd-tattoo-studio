@@ -11,10 +11,10 @@ const db = new sqlite3.Database('./users.db'); // Conecta ao banco de dados SQLi
 
 app.use(cors({ credentials: true, origin: 'http://localhost:5173' })); // Permite requisições de outros domínios
 app.use(express.json()); // Use express.json() em vez de body-parser
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 const verificarTokenAdm = (req, res, next) => {
-  console.log("Cookies recebidos:", req.cookies); // Para verificar se o token está presente
   const token = req.cookies.token;
 
   if (!token) {
@@ -233,14 +233,51 @@ app.post('/api/logout', (req, res) => {
   return res.status(200).json({ message: 'Logout bem-sucedido.' });
 });
 
-// Rota para listar todos os usuários
-app.get('/usuarios', verificarTokenAdm, (req, res) => {
-  db.all('SELECT * FROM usuario', [], (err, usuarios) => {
-    if (err) return res.status(500).json({ message: 'Erro ao listar usuários.' });
-    res.json(usuarios);
+//Rota para listar usuarios
+app.get("/usuarios", verificarTokenAdm, (req, res) => {
+  db.all("SELECT id_usuario, nome, email, idade FROM usuario", [], (err, rows) => {
+    if (err) {
+      console.error("Erro ao obter usuários:", err.message);
+      return res.status(500).json({ message: "Erro ao carregar usuários." });
+    }
+    res.status(200).json({
+      result: {
+        usuarios: rows || [], // Garante que retorne um array mesmo que vazio
+      },
+    });
   });
 });
 
+//Rota para listar adms
+app.get("/adms", verificarTokenAdm, (req, res) => {
+  db.all("SELECT id_adm, nome, user FROM adm", [], (err, rows) => {
+    if (err) {
+      console.error("Erro ao obter administradores:", err.message);
+      return res.status(500).json({ message: "Erro ao carregar administradores." });
+    }
+    res.status(200).json({
+      result: {
+        adms: rows || [], // Garante que retorne um array mesmo que vazio
+      },
+    });
+  });
+});
+
+
+//Rota para listar serviços
+app.get("/servicos", (req, res) => {
+  db.all("SELECT id_servico, tamanho, complexidade, cores, preco FROM servico", [], (err, rows) => {
+    if (err) {
+      console.error("Erro ao obter serviços:", err.message);
+      return res.status(500).json({ message: "Erro ao carregar serviços." });
+    }
+    res.status(200).json({
+      result: {
+        servicos: rows || [], // Garante que retorne um array mesmo que vazio
+      },
+    });
+  });
+});
 
 // Rota para editar um usuário
 app.put('/usuarios/:id_usuario', verificarTokenAdm, (req, res) => {
@@ -258,8 +295,8 @@ app.put('/usuarios/:id_usuario', verificarTokenAdm, (req, res) => {
       usuarioAtualizado.senha = hashedPassword;
 
       // Atualiza o usuário no banco de dados
-      db.run('UPDATE usuario SET nome = ?, email = ?, idade = ?, senha = ? WHERE id_usuario = ?', 
-        [usuarioAtualizado.nome, usuarioAtualizado.email, usuarioAtualizado.idade, usuarioAtualizado.senha, id_usuario], 
+      db.run('UPDATE usuario SET nome = ?, email = ?, idade = ?, senha = ? WHERE id_usuario = ?',
+        [usuarioAtualizado.nome, usuarioAtualizado.email, usuarioAtualizado.idade, usuarioAtualizado.senha, id_usuario],
         function (err) {
           if (err) return res.status(500).json({ message: 'Erro ao atualizar usuário.' });
           res.json({ message: 'Usuário atualizado com sucesso!' });
@@ -267,8 +304,8 @@ app.put('/usuarios/:id_usuario', verificarTokenAdm, (req, res) => {
     });
   } else {
     // Se não houver senha, apenas atualiza os outros campos
-    db.run('UPDATE usuario SET nome = ?, email = ?, idade = ? WHERE id_usuario = ?', 
-      [usuarioAtualizado.nome, usuarioAtualizado.email, usuarioAtualizado.idade, id_usuario], 
+    db.run('UPDATE usuario SET nome = ?, email = ?, idade = ? WHERE id_usuario = ?',
+      [usuarioAtualizado.nome, usuarioAtualizado.email, usuarioAtualizado.idade, id_usuario],
       function (err) {
         if (err) return res.status(500).json({ message: 'Erro ao atualizar usuário.' });
         res.json({ message: 'Usuário atualizado com sucesso!' });

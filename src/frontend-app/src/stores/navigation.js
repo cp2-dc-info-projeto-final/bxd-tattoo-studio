@@ -24,6 +24,21 @@ export const irParaHomeADM  = () => {
   });
 };
 
+// Função para redirecionar para a página de ADM/adm
+export const administrarADM = () => {
+  paginaAtual.set("admadm");
+};
+
+// Função para redirecionar para a página de ADM/adm
+export const administrarUser = () => {
+  paginaAtual.set("admuser");
+};
+
+// Função para redirecionar para a página de ADM/adm
+export const administrarServico = () => {
+  paginaAtual.set("admservico");
+};
+
 // Função para redirecionar para a página de agendamento
 export const irParaAgendamento = () => {
   sessionStore.subscribe((token) => {
