@@ -60,6 +60,11 @@ export const irParaHome = () => {
   paginaAtual.set("home");
 };
 
+// Função para redirecionar para a página de ADM/adm
+export const administrarHora = () => {
+  paginaAtual.set("admhora");
+};
+
 // Função para redirecionar para a página de cadastro de servicos
 export const irParaCadastroSRC = () => {
   paginaAtual.set("cadsrc");

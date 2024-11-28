@@ -20,6 +20,7 @@
   import HomeAdm from "./pages/HomeAdm.svelte";
   import CadastroSrc from "./pages/CadastroSRC.svelte";
   import AdmnistracaoPages from "./pages/admnistracaoPages.svelte";
+  import AdministracaoHorarios from "./pages/components/AdministracaoHorarios.svelte";
 </script>
 
 {#if $paginaAtual === "home"}
@@ -64,5 +65,9 @@
 
 {#if $paginaAtual === "admservico"}
   <AdministracaoServicos />
+{/if}
+
+{#if $paginaAtual === "admhora"}
+  <AdministracaoHorarios />
 {/if}
 

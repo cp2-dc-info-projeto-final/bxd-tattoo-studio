@@ -162,6 +162,27 @@ app.get('/api/adms/me', verificarTokenAdm, (req, res) => {
   });
 });
 
+// Rota para cadastro de novo serviço
+app.post('/servicos/novo', verificarTokenAdm, (req, res) => {
+  const { tamanho, complexidade, cores, preco } = req.body;
+  // Verifica se todos os campos foram fornecidos e possuem valores válidos
+  if (!tamanho || !complexidade || !cores || !preco) {
+    return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
+  }
+
+  // Insere o novo serviço no banco de dados
+  db.run(
+    'INSERT INTO servico (tamanho, complexidade, cores, preco) VALUES (?, ?, ?, ?)',
+    [tamanho, complexidade, cores, preco],
+    function (err) {
+      if (err) {
+        return res.status(500).json({ message: 'Erro ao cadastrar serviço.' });
+      }
+      return res.status(201).json({ message: 'Serviço cadastrado com sucesso!', id_servico: this.lastID });
+    }
+  );
+});
+
 // Rota para cadastrar um novo usuário
 app.post('/usuarios/novo', (req, res) => {
   const { nome, email, idade, senha } = req.body;
@@ -227,6 +248,21 @@ app.post('/adm/novo', verificarTokenAdm, async (req, res) => {
   });
 });
 
+//Cadastro de horarios
+app.post('/horarios', async (req, res) => {
+    const { hora } = req.body;
+    if (!hora) {
+        return res.status(400).json({ message: 'O campo "hora" é obrigatório.' });
+    }
+    try {
+        await db.run('INSERT INTO horario (hora, disponibilidade) VALUES (?, ?)', [hora, true]);
+        res.status(201).json({ message: 'Horário adicionado com sucesso.' });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao adicionar horário.' });
+    }
+});
+
+
 // Rota de logout
 app.post('/api/logout', (req, res) => {
   res.clearCookie('token'); // Limpa o cookie do token
@@ -278,6 +314,32 @@ app.get("/servicos", (req, res) => {
     });
   });
 });
+
+//Rota para listar horarios
+app.get('/horarios', async (req, res) => {
+    try {
+        const horarios = await db.all('SELECT * FROM horario WHERE disponibilidade = 1');
+        res.status(200).json(horarios);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao buscar horários.' });
+    }
+});
+
+//Rota para agendar horário
+app.patch('/horarios/:id/agendar', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await db.run('UPDATE horario SET disponibilidade = 0 WHERE id_horario = ? AND disponibilidade = 1', [id]);
+        if (result.changes > 0) {
+            res.status(200).json({ message: 'Horário agendado com sucesso.' });
+        } else {
+            res.status(400).json({ message: 'Horário já está indisponível ou não encontrado.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao agendar horário.' });
+    }
+});
+
 
 // Rota para editar um usuário
 app.put('/usuarios/:id_usuario', verificarTokenAdm, (req, res) => {
@@ -373,6 +435,21 @@ app.delete('/servicos/:id_servico', verificarTokenAdm, (req, res) => {
     if (err) return res.status(500).json({ message: 'Erro ao excluir serviço.' });
     res.json({ message: 'Serviço excluído com sucesso!' });
   });
+});
+
+//Rota para excluir horario por ID
+app.delete('/horarios/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await db.run('DELETE FROM horario WHERE id_horario = ?', [id]);
+        if (result.changes > 0) {
+            res.status(200).json({ message: 'Horário excluído com sucesso.' });
+        } else {
+            res.status(404).json({ message: 'Horário não encontrado.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao excluir horário.' });
+    }
 });
 
 
