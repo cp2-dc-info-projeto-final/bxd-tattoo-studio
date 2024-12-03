@@ -1,54 +1,57 @@
 <script>
   import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
+  import axios from 'axios'; // Adicionando o axios
 
   const horarios = writable([]);
   let novoHorario = '';
 
+  // Função para carregar horários cadastrados
   async function carregarHorarios() {
     try {
-      const res = await fetch('/horarios');
-      if (res.ok) {
-        horarios.set(await res.json());
-      }
+      const res = await axios.get('/horarios');
+      horarios.set(res.data); // Atualiza os horários no store
     } catch (error) {
       console.error('Erro ao carregar horários:', error);
     }
   }
 
+  // Função para adicionar um novo horário
   async function adicionarHorario() {
     try {
-      const res = await fetch('/horarios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hora: novoHorario })
+      const res = await axios.post('/horarios', {
+        hora: novoHorario
       });
-      if (res.ok) {
+      if (res.status === 201) { // Verifica se o status é 201 (criado)
         alert('Horário adicionado com sucesso!');
-        novoHorario = '';
-        carregarHorarios();
+        novoHorario = ''; // Limpa o campo de novo horário
+        carregarHorarios(); // Recarrega a lista de horários
       } else {
         alert('Erro ao adicionar horário.');
       }
     } catch (error) {
       console.error('Erro ao adicionar horário:', error);
+      alert('Erro ao adicionar horário.');
     }
   }
 
+  // Função para excluir um horário
   async function excluirHorario(id) {
     try {
-      const res = await fetch(`/horarios/${id}`, { method: 'DELETE' });
-      if (res.ok) {
+      const res = await axios.delete(`/horarios/${id}`);
+      if (res.status === 200) { // Verifica se o status é 200 (OK)
         alert('Horário excluído com sucesso!');
-        carregarHorarios();
+        carregarHorarios(); // Recarrega a lista de horários
       } else {
         alert('Erro ao excluir horário.');
       }
     } catch (error) {
       console.error('Erro ao excluir horário:', error);
+      alert('Erro ao excluir horário.');
     }
   }
 
+  // Chamada inicial para carregar os horários
   onMount(carregarHorarios);
 </script>
 

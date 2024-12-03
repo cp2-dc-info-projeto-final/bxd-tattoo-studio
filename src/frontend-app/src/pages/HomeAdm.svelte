@@ -5,6 +5,7 @@
     administrarServico,
     irParaCadastroADM,
     irParaCadastroSRC,
+    irParaCadastroHora,
   } from "../stores/navigation";
 
   // Opções de navegação
@@ -22,14 +23,15 @@
         { nome: "Administradores", acao: administrarADM },
         { nome: "Usuários", acao: administrarUser },
         { nome: "Serviços", acao: administrarServico },
+        { nome: "Horários", acao: irParaCadastroHora },
       ],
     },
   ];
 
   // Variáveis para controlar os collapses
   let isCollapsed = {
-    "Cadastros": false,
-    "Edições": false
+    Cadastros: false,
+    Edições: false,
   };
 
   // Garantia de que ações retornem void explicitamente
@@ -42,6 +44,38 @@
     isCollapsed[titulo] = !isCollapsed[titulo];
   }
 </script>
+
+<div class="container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h4>Administração</h4>
+    {#each opcoes as opcao}
+      <div class="nav-section">
+        <div
+          class="collapse-header"
+          on:click={() => toggleCollapse(opcao.titulo)}
+        >
+          > {opcao.titulo}
+        </div>
+        {#if !isCollapsed[opcao.titulo]}
+          <div class="collapse-content">
+            {#each opcao.itens as item}
+              <button class="nav-item" on:click={() => handleAction(item.acao)}>
+                {item.nome}
+              </button>
+            {/each}
+          </div>
+        {/if}
+      </div>
+    {/each}
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <h3>Bem-vindo à administração!</h3>
+    <p>Selecione uma opção no menu para começar.</p>
+  </div>
+</div>
 
 <style>
   .container {
@@ -93,38 +127,3 @@
     padding-left: 15px;
   }
 </style>
-
-<div class="container">
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <h4>Administração</h4>
-    {#each opcoes as opcao}
-      <div class="nav-section">
-        <div
-          class="collapse-header"
-          on:click={() => toggleCollapse(opcao.titulo)}
-        >
-          {opcao.titulo}
-        </div>
-        {#if !isCollapsed[opcao.titulo]}
-          <div class="collapse-content">
-            {#each opcao.itens as item}
-              <button
-                class="nav-item"
-                on:click={() => handleAction(item.acao)}
-              >
-                {item.nome}
-              </button>
-            {/each}
-          </div>
-        {/if}
-      </div>
-    {/each}
-  </div>
-
-  <!-- Main Content -->
-  <div class="main-content">
-    <h3>Bem-vindo à administração!</h3>
-    <p>Selecione uma opção no menu para começar.</p>
-  </div>
-</div>

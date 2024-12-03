@@ -13,13 +13,15 @@ export const irParaLoginADM = () => {
   paginaAtual.set("loginadm")
 };
 
-//Home de ADM (Teste)
-export const irParaHomeADM  = () => {
+// Home de ADM (Teste)
+export const irParaHomeADM = () => {
   sessionStore.subscribe((token) => {
     if (!token) {
-      paginaAtual.set('login'); // Redireciona se o usuário não estiver logado
+      // Se não houver token, redireciona para login
+      paginaAtual.set("login");
     } else {
-      paginaAtual.set('homeadm'); // Se estiver logado, redireciona para agendamento
+      // Se houver token, redireciona para a home de ADM
+      paginaAtual.set("homeadm");
     }
   });
 };
