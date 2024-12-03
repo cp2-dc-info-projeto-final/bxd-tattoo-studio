@@ -249,7 +249,7 @@ app.post('/adm/novo', verificarTokenAdm, async (req, res) => {
 });
 
 //Cadastro de horarios
-app.post('/horarios', async (req, res) => {
+app.post('/horario/novo', async (req, res) => {
     const { hora } = req.body;
     if (!hora) {
         return res.status(400).json({ message: 'O campo "hora" é obrigatório.' });
@@ -279,6 +279,36 @@ app.get("/usuarios", verificarTokenAdm, (req, res) => {
     res.status(200).json({
       result: {
         usuarios: rows || [], // Garante que retorne um array mesmo que vazio
+      },
+    });
+  });
+});
+
+//Rota para exibir horarios
+app.get("/horarios", (req, res) => {
+  db.all("SELECT hora, disponibilidade FROM horario", [], (err, rows) => {
+    if (err) {
+      console.error("Erro ao obter horarios:", err.message);
+      return res.status(500).json({ message: "Erro ao carregar horarios." });
+    }
+    res.status(200).json({
+      result: {
+        horarios: rows || [], // Garante que retorne um array mesmo que vazio
+      },
+    });
+  });
+});
+
+//Rota para listar horarios
+app.get("/horarios2", (req, res) => {
+  db.all("SELECT id_hora, hora, disponibilidade FROM horario", [], (err, rows) => {
+    if (err) {
+      console.error("Erro ao obter horarios:", err.message);
+      return res.status(500).json({ message: "Erro ao carregar horarios." });
+    }
+    res.status(200).json({
+      result: {
+        horarios: rows || [], // Garante que retorne um array mesmo que vazio
       },
     });
   });

@@ -7,11 +7,12 @@
     irParaCadastroSRC,
   } from "../stores/navigation";
 
+  // Opções de navegação
   let opcoes = [
     {
       titulo: "Cadastros",
       itens: [
-        { nome: "Administradores", acao: irParaCadastroADM() },
+        { nome: "Administradores", acao: irParaCadastroADM },
         { nome: "Serviços", acao: irParaCadastroSRC },
       ],
     },
@@ -25,61 +26,71 @@
     },
   ];
 
+  // Variáveis para controlar os collapses
+  let isCollapsed = {
+    "Cadastros": false,
+    "Edições": false
+  };
+
   // Garantia de que ações retornem void explicitamente
   function handleAction(acao) {
     acao();
   }
+
+  // Função para alternar a visibilidade de um collapse
+  function toggleCollapse(titulo) {
+    isCollapsed[titulo] = !isCollapsed[titulo];
+  }
 </script>
 
 <style>
-  .sidebar {
-    background-color: #2c2c2c;
-    color: #e0e0e0;
-    height: 100vh;
-    padding: 20px;
-    position: sticky;
-    top: 0;
-    overflow-y: auto;
-  }
-
-  .sidebar h4 {
-    margin-bottom: 20px;
-  }
-
-  .sidebar .nav-section {
-    margin-bottom: 30px;
-  }
-
-  .sidebar .nav-item {
-    color: #e0e0e0;
-    margin: 5px 0;
-    display: block;
-    background: none;
-    border: none;
-    text-align: left;
-    font-size: 16px;
-    cursor: pointer;
-    padding: 8px 0;
-  }
-
-  .sidebar .nav-item:hover {
-    color: #17a2b8;
-  }
-
-  .main-content {
-    padding: 20px;
-    flex-grow: 1;
-  }
-
   .container {
     display: flex;
   }
 
-  @media (max-width: 768px) {
-    .sidebar {
-      position: static;
-      height: auto;
-    }
+  .sidebar {
+    width: 250px;
+    background-color: #3a3a3a;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .main-content {
+    margin-left: 270px;
+    padding: 20px;
+  }
+
+  .nav-section {
+    margin-bottom: 15px;
+  }
+
+  .nav-item {
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 16px;
+    color: #222020;
+    transition: background-color 0.3s;
+  }
+
+  .collapse-header {
+    cursor: pointer;
+    background-color: #222020;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+  }
+
+  .collapse-header:hover {
+    background-color: #0056b3;
+  }
+
+  .collapse-content {
+    padding-left: 15px;
   }
 </style>
 
@@ -89,15 +100,24 @@
     <h4>Administração</h4>
     {#each opcoes as opcao}
       <div class="nav-section">
-        <h5>{opcao.titulo}</h5>
-        {#each opcao.itens as item}
-          <!-- Botão interativo para evitar problemas de acessibilidade -->
-          <button class="nav-item"
-           on:click={administrarServico}
-          >
-            {item.nome}
-          </button>
-        {/each}
+        <div
+          class="collapse-header"
+          on:click={() => toggleCollapse(opcao.titulo)}
+        >
+          {opcao.titulo}
+        </div>
+        {#if !isCollapsed[opcao.titulo]}
+          <div class="collapse-content">
+            {#each opcao.itens as item}
+              <button
+                class="nav-item"
+                on:click={() => handleAction(item.acao)}
+              >
+                {item.nome}
+              </button>
+            {/each}
+          </div>
+        {/if}
       </div>
     {/each}
   </div>

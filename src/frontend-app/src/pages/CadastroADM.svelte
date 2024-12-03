@@ -1,7 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import axios from "axios";
-  import { api_base_url, paginaAtual } from "../stores/navigation";
+  import { api_base_url, irParaLogin, paginaAtual } from "../stores/navigation"; // Ajuste o caminho conforme necessário
 
   // Inicializando variáveis
   export let nome = "";
@@ -10,30 +10,9 @@
   export let conf_senha = "";
   export let error = null;
   export let resultado = null;
-  export let adms = [];
-  export let colunas_adms = [];
-
-  // Função para carregar a lista de administradores
-  const carregarAdms = async () => {
-    try {
-      let res = await axios.get(`${api_base_url}/adms`, {
-        responseType: "json",
-        headers: {
-          Accept: "application/json",
-        },
-      });
-      adms = res.data.adms || [];
-      colunas_adms = adms.length > 0 ? Object.keys(adms[0]) : [];
-      error = null; // Limpa o erro se a requisição for bem-sucedida
-    } catch (err) {
-      console.error(err);
-      adms = [];
-      colunas_adms = [];
-        }
-  };
-
+  
   // Função para cadastrar um novo administrador
-  const cadastrarAdms = async () => {
+  const cadastrarAdm = async () => {
     if (senha !== conf_senha) {
       error = "As senhas não coincidem.";
       resultado = null;
@@ -50,47 +29,49 @@
       );
       resultado = res.data;
       error = null;
-      await carregarAdms(); // Atualiza a lista após o cadastro
-      paginaAtual.set("login")
+      paginaAtual.set("login"); // Após cadastro bem-sucedido, redireciona para a página de login
     } catch (err) {
       console.error(err);
       resultado = null;
-      error = err.response?.data?.message || "Erro ao cadastrar o administrador.";
+      error = err.response?.data?.message || "Erro ao cadastrar administrador.";
     }
   };
-
 </script>
 
 <main>
-  <div class="container mt-5">
-    <div class="row justify-content-center m-auto align-items-center d-flex" style="width: 600px; padding-top: 100px; padding-bottom: 100px;">
-      <div class="col-md-5">
-        <h2 class="text-center mb-4">Cadastrar-se</h2>
-        <form on:submit|preventDefault={cadastrarAdms}>
-          <div class="mb-3">
-            <label for="nome" class="form-label">Nome</label>
-            <input type="text" class="form-control" id="nome" bind:value={nome} placeholder="Digite seu nome" required />
-          </div>
-          <div class="mb-3">
-            <label for="User" class="form-label">User</label>
-            <input type="text" class="form-control" id="User" bind:value={user} placeholder="Digite seu User" required />
-          </div>
-          <div class="mb-3">
-            <label for="senha" class="form-label">Senha</label>
-            <input type="password" class="form-control" id="senha" bind:value={senha} placeholder="Digite sua senha" required />
-          </div>
-          <div class="mb-3">
-            <label for="conf_senha" class="form-label">Confirme sua senha</label>
-            <input type="password" class="form-control" id="conf_senha" bind:value={conf_senha} placeholder="Confirme sua senha" required />
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
-        </form>
-        {#if error}
-          <p style="color: red;">{error}</p>
-        {/if}
-        {#if resultado && resultado.message}
-          <p style="color: green;">{resultado.message}</p>
-        {/if}
-      </div>
+  <h1>Cadastro de Administrador</h1>
+
+  <form on:submit|preventDefault={cadastrarAdm}>
+    <div>
+      <label for="nome">Nome</label>
+      <input type="text" id="nome" bind:value={nome} required />
     </div>
+
+    <div>
+      <label for="user">Usuário</label>
+      <input type="text" id="user" bind:value={user} required />
+    </div>
+
+    <div>
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" bind:value={senha} required />
+    </div>
+
+    <div>
+      <label for="conf_senha">Confirmar Senha</label>
+      <input type="password" id="conf_senha" bind:value={conf_senha} required />
+    </div>
+
+    {#if error}
+      <div class="error">{error}</div>
+    {/if}
+
+    {#if resultado}
+      <div class="success">{resultado.message}</div>
+    {/if}
+
+    <button type="submit">Cadastrar</button>
+  </form>
+
+  <p>Já possui uma conta? <button on:click={irParaLogin}></button></p>
 </main>

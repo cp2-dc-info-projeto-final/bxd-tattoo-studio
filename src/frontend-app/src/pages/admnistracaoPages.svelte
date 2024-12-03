@@ -6,6 +6,7 @@
     irParaHome,
     irParaAgendamento,
     irParaCadastroADM,
+    irParaCadastroHora,
     irParaCadastroSRC,
     irParaHomeADM,
     administrarADM,
@@ -22,6 +23,7 @@
 <button class="btn btn-primary mr-2" on:click={irParaAgendamento}>Agendamento</button>
 <button class="btn btn-primary mr-2" on:click={irParaCadastroADM}>CadastroAdm</button>
 <button class="btn btn-primary mr-2" on:click={irParaCadastroSRC}>Cadastro de Serviços</button>
+<button class="btn btn-primary mr-2" on:click={irParaCadastroHora}>Cadastro de Horarios</button>
 <button class="btn btn-primary mr-2" on:click={irParaHomeADM}>Home ADM</button>
 <button class="btn btn-primary mr-2" on:click={administrarADM}>Administrar ADM</button>
 <button class="btn btn-primary mr-2" on:click={administrarUser}>Administrar Usuario</button>

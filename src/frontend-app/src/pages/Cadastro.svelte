@@ -1,15 +1,16 @@
 <script>
   import { onMount } from "svelte";
   import axios from "axios";
-  export let nome;
-  export let email;
-  export let idade;
-  export let senha;
-  export let conf_senha;
-  export let error;
-  export let resultado;
-  export let usuarios;
-  export let colunas_usuarios;
+  export let nome = '';
+  let message = '';
+  export let email = '';
+  export let idade = '';
+  export let senha = '';
+  export let conf_senha = '';
+  export let error = '';
+  export let resultado = '';
+  export let usuarios = [];
+  export let colunas_usuarios = [];
   import { api_base_url, irParaLogin, paginaAtual } from "../stores/navigation";
 
   const carregarUsuarios = async () => {
@@ -96,13 +97,8 @@
         
         <p class="fs-5 pt-">Já possui cadastro?</p>
         <button on:click={irParaLogin} class="btn btn-success w-100">Logar-se</button>
-        {#if error}
-          <p style="color: red;">{error}</p>
-        {/if}
-        {#if resultado && resultado.message}
-          <p style="color: green;">{resultado.message}</p>
-        {/if}
       </div>
     </div>
   </div>
 </main>
+

@@ -21,53 +21,46 @@
   import CadastroSrc from "./pages/CadastroSRC.svelte";
   import AdmnistracaoPages from "./pages/admnistracaoPages.svelte";
   import AdministracaoHorarios from "./pages/components/AdministracaoHorarios.svelte";
+  import CadastroHora from "./pages/CadastroHora.svelte";
+  import CadastroAdm from "./pages/CadastroADM.svelte"
 </script>
 
 {#if $paginaAtual === "home"}
   <Home />
-{/if}
-
-{#if $paginaAtual === "login"}
+{:else if $paginaAtual === "login"}
   <Login />
-{/if}
 
-{#if $paginaAtual === "cadastro"}
+{:else if $paginaAtual === "cadastro"}
   <Cadastro />
-{/if}
 
-{#if $paginaAtual === "agendamento"}
+{:else if $paginaAtual === "agendamento"}
   <Agendamento />
-{/if}
 
-{#if $paginaAtual === "cadadm"}
-  <CadastrarAdmin />
-{/if}
+{:else if $paginaAtual === "cadadm"}
+  <CadastroAdm />
 
-{#if $paginaAtual === "homeadm"}
+{:else if $paginaAtual === "homeadm"}
   <HomeAdm />
-{/if}
 
-{#if $paginaAtual === "cadsrc"}
+{:else if $paginaAtual === "cadsrc"}
   <CadastroSrc />
-{/if}
 
-{#if $paginaAtual === "adm"}
+{:else if $paginaAtual === "adm"}
   <AdmnistracaoPages />
-{/if}
 
-{#if $paginaAtual === "admadm"}
+{:else if $paginaAtual === "admadm"}
   <AdministracaoAdmins />
-{/if}
 
-{#if $paginaAtual === "admuser"}
+{:else if $paginaAtual === "admuser"}
   <AdministracaoUsuarios />
-{/if}
 
-{#if $paginaAtual === "admservico"}
+{:else if $paginaAtual === "admservico"}
   <AdministracaoServicos />
-{/if}
 
-{#if $paginaAtual === "admhora"}
+{:else if $paginaAtual === "admhora"}
   <AdministracaoHorarios />
-{/if}
 
+{:else if $paginaAtual === "cadhora"}
+  <CadastroHora />
+  
+{/if}
