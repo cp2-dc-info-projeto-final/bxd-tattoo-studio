@@ -99,3 +99,7 @@ a:hover {
     padding: 8px 12px;
   }
 }
+
+#bt_hover:hover {
+color: #138496;
+}

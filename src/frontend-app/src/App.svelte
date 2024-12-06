@@ -36,31 +36,9 @@
 {:else if $paginaAtual === "agendamento"}
   <Agendamento />
 
-{:else if $paginaAtual === "cadadm"}
-  <CadastroAdm />
-
 {:else if $paginaAtual === "homeadm"}
   <HomeAdm />
 
-{:else if $paginaAtual === "cadsrc"}
-  <CadastroSrc />
-
 {:else if $paginaAtual === "adm"}
   <AdmnistracaoPages />
-
-{:else if $paginaAtual === "admadm"}
-  <AdministracaoAdmins />
-
-{:else if $paginaAtual === "admuser"}
-  <AdministracaoUsuarios />
-
-{:else if $paginaAtual === "admservico"}
-  <AdministracaoServicos />
-
-{:else if $paginaAtual === "admhora"}
-  <AdministracaoHorarios />
-
-{:else if $paginaAtual === "cadhora"}
-  <CadastroHora />
-  
 {/if}
