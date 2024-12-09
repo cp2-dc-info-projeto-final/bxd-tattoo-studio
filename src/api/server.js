@@ -248,20 +248,101 @@ app.post('/adm/novo', verificarTokenAdm, async (req, res) => {
   });
 });
 
-//Cadastro de horarios
-app.post('/horario/novo', async (req, res) => {
-    const { hora } = req.body;
-    if (!hora) {
-        return res.status(400).json({ message: 'O campo "hora" é obrigatório.' });
+// Rota para cadastrar um horário
+app.post('/horario/novo', verificarToken, (req, res) => {
+  const { datetime } = req.body;
+  const userId = req.userId; // Obtém o ID do usuário autenticado do middleware de token
+
+  if (!datetime) {
+    return res.status(400).json({ message: 'O campo datetime é obrigatório.' });
+  }
+
+  // Verifica se já existe um horário no mesmo dia
+  db.get(
+    `SELECT id_horario FROM horario 
+     WHERE DATE(datetime) = DATE(?)`,
+    [datetime],
+    (err, row) => {
+      if (err) {
+        return res.status(500).json({ message: 'Erro ao verificar a disponibilidade do horário.' });
+      }
+
+      if (row) {
+        return res.status(409).json({ message: 'Já existe um horário cadastrado neste dia.' });
+      }
+
+      // Insere o horário e associa ao usuário
+      db.run(
+        'INSERT INTO horario (datetime, usuario_sk) VALUES (?, ?)',
+        [datetime, userId],
+        function (err) {
+          if (err) {
+            return res.status(500).json({ message: 'Erro ao cadastrar horário.' });
+          }
+
+          res.status(201).json({
+            message: 'Horário cadastrado com sucesso!',
+            id_horario: this.lastID,
+          });
+        }
+      );
     }
-    try {
-        await db.run('INSERT INTO horario (hora, disponibilidade) VALUES (?, ?)', [hora, true]);
-        res.status(201).json({ message: 'Horário adicionado com sucesso.' });
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao adicionar horário.' });
-    }
+  );
 });
 
+
+//Rota para cancelar um horário
+app.patch('/horarios/:id/cancelar', verificarToken, (req, res) => {
+  const { id } = req.params;
+
+  db.run(
+      'UPDATE horario SET usuario_sk = NULL WHERE id_horario = ?',
+      [id],
+      function (err) {
+          if (err) {
+              return res.status(500).json({ message: 'Erro ao cancelar o agendamento do horário.' });
+          }
+
+          if (this.changes === 0) {
+              return res.status(404).json({ message: 'Horário não encontrado ou já está disponível.' });
+          }
+
+          res.status(200).json({ message: 'Horário cancelado com sucesso e agora está disponível.' });
+      }
+  );
+});
+
+//Rota para listar horários
+app.get('/horarios/disponiveis', (req, res) => {
+  db.all('SELECT * FROM horario WHERE usuario_sk IS NULL', [], (err, rows) => {
+      if (err) {
+          return res.status(500).json({ message: 'Erro ao buscar horários disponíveis.' });
+      }
+      res.status(200).json(rows);
+  });
+});
+
+//Rota para agendar um horário
+app.patch('/horarios/:id/agendar', verificarToken, (req, res) => {
+  const { id } = req.params;
+  const userId = req.userId; // Obtido a partir do middleware de verificação de token
+
+  db.run(
+      'UPDATE horario SET usuario_sk = ? WHERE id_horario = ? AND usuario_sk IS NULL',
+      [userId, id],
+      function (err) {
+          if (err) {
+              return res.status(500).json({ message: 'Erro ao agendar o horário.' });
+          }
+
+          if (this.changes === 0) {
+              return res.status(400).json({ message: 'Horário já está agendado ou não encontrado.' });
+          }
+
+          res.status(200).json({ message: 'Horário agendado com sucesso.' });
+      }
+  );
+});
 
 // Rota de logout
 app.post('/api/logout', (req, res) => {
