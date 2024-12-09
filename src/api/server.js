@@ -365,36 +365,6 @@ app.get("/usuarios", verificarTokenAdm, (req, res) => {
   });
 });
 
-//Rota para exibir horarios
-app.get("/horarios", (req, res) => {
-  db.all("SELECT hora, disponibilidade FROM horario", [], (err, rows) => {
-    if (err) {
-      console.error("Erro ao obter horarios:", err.message);
-      return res.status(500).json({ message: "Erro ao carregar horarios." });
-    }
-    res.status(200).json({
-      result: {
-        horarios: rows || [], // Garante que retorne um array mesmo que vazio
-      },
-    });
-  });
-});
-
-//Rota para listar horarios
-app.get("/horarios2", (req, res) => {
-  db.all("SELECT id_hora, hora, disponibilidade FROM horario", [], (err, rows) => {
-    if (err) {
-      console.error("Erro ao obter horarios:", err.message);
-      return res.status(500).json({ message: "Erro ao carregar horarios." });
-    }
-    res.status(200).json({
-      result: {
-        horarios: rows || [], // Garante que retorne um array mesmo que vazio
-      },
-    });
-  });
-});
-
 //Rota para listar adms
 app.get("/adms", verificarTokenAdm, (req, res) => {
   db.all("SELECT id_adm, nome, user FROM adm", [], (err, rows) => {
