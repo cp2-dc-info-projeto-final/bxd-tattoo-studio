@@ -42,3 +42,7 @@
 {:else if $paginaAtual === "adm"}
   <AdmnistracaoPages />
 {/if}
+
+{#if $paginaAtual === "cadhora"}
+  <CadastroHora />
+{/if}

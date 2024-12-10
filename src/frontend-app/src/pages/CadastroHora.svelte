@@ -1,58 +1,89 @@
 <script>
-  import { onMount } from "svelte";
-  import axios from "axios";
-  import { api_base_url } from "../stores/navigation";
+  import { onMount } from 'svelte';
+  let datetime = '';  // variável para armazenar a data e hora
+  let mensagem = '';   // variável para exibir mensagem de sucesso ou erro
 
-  export let datetime = "";
-  export let error = null;
-  export let resultado = null;
-
+  // Função para enviar os dados do horário para a API
   const cadastrarHorario = async () => {
-    try {
-      let res = await axios.post(
-        `${api_base_url}/horario/novo`,
-        { datetime },
-        {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}` // Passa o token do usuário autenticado
-          },
-          withCredentials: true,
-        }
-      );
-      resultado = res.data;
-      error = null;
-      datetime = ""; // Limpa o campo após sucesso
-    } catch (err) {
-      console.error(err);
-      resultado = null;
-      error = err.response?.data?.message || "Erro ao cadastrar horário.";
-    }
+      try {
+          // Verifica se o campo datetime está preenchido
+          if (!datetime) {
+              mensagem = 'Por favor, preencha o campo de data e hora.';
+              return;
+          }
+
+          // Envia a requisição POST para a API
+          const response = await fetch('http://localhost:3000/horario/novo', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  // 'Authorization': 'Bearer seu_token_aqui',  // Adicione o token se necessário
+              },
+              body: JSON.stringify({ datetime })
+          });
+
+          // Verifica a resposta da API
+          if (response.ok) {
+              const data = await response.json();
+              mensagem = 'Horário cadastrado com sucesso!';
+              console.log(data); // Aqui você pode processar os dados de resposta da API
+          } else {
+              const error = await response.json();
+              mensagem = `Erro: ${error.message || 'Erro ao cadastrar horário'}`;
+          }
+      } catch (err) {
+          // Captura erros na requisição
+          mensagem = `Erro de comunicação: ${err.message}`;
+      }
   };
 </script>
 
-<main>
-  <h1>Cadastro de Horário</h1>
+<style>
+  form {
+      margin: 20px 0;
+  }
+  input {
+      padding: 8px;
+      margin: 10px 0;
+      font-size: 14px;
+      width: 100%;
+      max-width: 300px;
+  }
+  button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+  }
+  button:hover {
+      background-color: #45a049;
+  }
+  .mensagem {
+      margin-top: 20px;
+      padding: 10px;
+      color: #fff;
+      border-radius: 5px;
+  }
+  .sucesso {
+      background-color: #4CAF50;
+  }
+  .erro {
+      background-color: #f44336;
+  }
+</style>
 
-  <form on:submit|preventDefault={cadastrarHorario}>
-    <div>
-      <label for="datetime">Data e Hora</label>
-      <input
-        type="datetime-local"
-        id="datetime"
-        bind:value={datetime}
-        required
-      />
-    </div>
+<h1>Cadastrar Novo Horário</h1>
 
-    {#if error}
-      <div class="error">{error}</div>
-    {/if}
+<form on:submit|preventDefault={cadastrarHorario}>
+  <label for="datetime">Data e Hora:</label>
+  <input type="datetime-local" id="datetime" bind:value={datetime} required />
+  <button type="submit">Cadastrar</button>
+</form>
 
-    {#if resultado}
-      <div class="success">{resultado.message}</div>
-    {/if}
-
-    <button type="submit">Cadastrar Horário</button>
-  </form>
-</main>
+{#if mensagem}
+  <div class="mensagem {mensagem.includes('sucesso') ? 'sucesso' : 'erro'}">
+      {mensagem}
+  </div>
+{/if}

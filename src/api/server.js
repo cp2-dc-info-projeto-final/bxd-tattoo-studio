@@ -248,19 +248,20 @@ app.post('/adm/novo', verificarTokenAdm, async (req, res) => {
   });
 });
 
+
 // Rota para cadastrar um horário
-app.post('/horario/novo', verificarToken, (req, res) => {
+app.post('/horario/novo', (req, res) => {
+  
   const { datetime } = req.body;
-  const userId = req.userId; // Obtém o ID do usuário autenticado do middleware de token
+  const userId = req.userId; // Obtém o ID do usuário autenticado
 
   if (!datetime) {
     return res.status(400).json({ message: 'O campo datetime é obrigatório.' });
   }
 
-  // Verifica se já existe um horário no mesmo dia
+  // Verifica se já existe um horário no mesmo dia e hora
   db.get(
-    `SELECT id_horario FROM horario 
-     WHERE DATE(datetime) = DATE(?)`,
+    'SELECT * FROM horario WHERE datetime = ?', // Compara o datetime exato
     [datetime],
     (err, row) => {
       if (err) {
@@ -268,10 +269,10 @@ app.post('/horario/novo', verificarToken, (req, res) => {
       }
 
       if (row) {
-        return res.status(409).json({ message: 'Já existe um horário cadastrado neste dia.' });
+        return res.status(409).json({ message: 'Já existe um horário cadastrado neste momento.' });
       }
 
-      // Insere o horário e associa ao usuário
+      // Insere o novo horário e associa ao usuário
       db.run(
         'INSERT INTO horario (datetime, usuario_sk) VALUES (?, ?)',
         [datetime, userId],
@@ -313,14 +314,21 @@ app.patch('/horarios/:id/cancelar', verificarToken, (req, res) => {
 });
 
 //Rota para listar horários
-app.get('/horarios/disponiveis', (req, res) => {
-  db.all('SELECT * FROM horario WHERE usuario_sk IS NULL', [], (err, rows) => {
-      if (err) {
-          return res.status(500).json({ message: 'Erro ao buscar horários disponíveis.' });
-      }
-      res.status(200).json(rows);
-  });
+app.get('/horarios/disponiveis', async (req, res) => {
+  try {
+    console.log('Requisição recebida para verificar horários disponíveis');
+    // Log para verificar o formato de data/hora que está sendo comparado
+    console.log('Dados recebidos:', req.body); // ou req.query, dependendo da implementação
+
+    // Lógica de verificação da disponibilidade aqui...
+
+    res.json(horarios);  // Dados com os horários disponíveis
+  } catch (error) {
+    console.error('Erro ao processar a requisição', error);
+    res.status(500).json({ message: 'Erro no servidor ao verificar horários' });
+  }
 });
+
 
 //Rota para agendar um horário
 app.patch('/horarios/:id/agendar', verificarToken, (req, res) => {
@@ -397,7 +405,7 @@ app.get("/servicos", (req, res) => {
 });
 
 //Rota para listar horarios
-app.get('/horarios', async (req, res) => {
+app.get('/horarios/listar', async (req, res) => {
     try {
         const horarios = await db.all('SELECT * FROM horario WHERE disponibilidade = 1');
         res.status(200).json(horarios);
