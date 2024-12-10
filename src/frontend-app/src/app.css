@@ -103,3 +103,14 @@ a:hover {
 #bt_hover:hover {
 color: #138496;
 }
+
+
+#b-edit {
+  width: 200px;
+  height: auto;
+}
+
+#modal-geral {
+width: 500px;
+height: auto;
+}

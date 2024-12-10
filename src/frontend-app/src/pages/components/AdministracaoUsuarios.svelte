@@ -95,9 +95,7 @@
   });
 </script>
 
-<div class="container mt-4">
-  <h1 class="text-center mb-4">Lista de Usuários</h1>
-
+<div class="container mt-4 d-flex justify-content-center align-items-center" style="min-height: 100vh;">
   <!-- Mensagem de status -->
   {#if mensagem}
     <div class="alert {error ? 'alert-danger' : 'alert-success'}">
@@ -106,7 +104,7 @@
   {/if}
 
   <!-- Tabela responsiva -->
-  <div class="table-responsive">
+  <div class="table-responsive" id="t-geral">
     <table class="table table-striped table-bordered">
       <thead class="thead-dark">
         <tr>
@@ -138,7 +136,7 @@
 
   <!-- Modal para editar usuário -->
   {#if usuarioParaEditar}
-    <div class="modal fade show" style="display: block;">
+    <div class="modal fade show" id="modal-geral" style="display: block;">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -176,11 +174,13 @@
           <div class="modal-footer">
             <button
               type="button"
+              id="b-edit"
               class="btn btn-secondary"
               on:click={cancelarEdicao}>Cancelar</button>
             <button
               type="button"
               class="btn btn-success"
+              id="b-edit"
               on:click={() =>
                 editarUsuario(usuarioParaEditar.id_usuario, {
                   nome: nomeEditado,
@@ -211,25 +211,31 @@
   .modal-dialog {
     max-width: 90%;
   }
-  
-button#b1 {
-  background-color: #af760b;
-  color: #e0e0e0;
-  border: 1px solid #5a5a5a;
-  padding: 10px 16px;
-  border-radius: 15px;
-  height: 60px;
-  width:70px;
-}
+
+  /* Centraliza a div com id "t-geral" */
+  #t-geral {
+    width: 650px;
+    height: auto;
+  }
+
+  /* Estilos dos botões */
+  button#b1 {
+    background-color: #af760b;
+    color: #e0e0e0;
+    border: 1px solid #5a5a5a;
+    padding: 10px 16px;
+    border-radius: 15px;
+    height: 60px;
+    width: 70px;
+  }
 
   button#b2 {
-  background-color: #9b1717;
-  color: #e0e0e0;
-  border: 1px solid #5a5a5a;
-  padding: 10px 16px;
-  border-radius: 15px;
-  height: 60px;
-  width:70px;
-}
-
+    background-color: #9b1717;
+    color: #e0e0e0;
+    border: 1px solid #5a5a5a;
+    padding: 10px 16px;
+    border-radius: 15px;
+    height: 60px;
+    width: 70px;
+  }
 </style>

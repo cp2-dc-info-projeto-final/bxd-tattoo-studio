@@ -20,7 +20,6 @@
   import HomeAdm from "./pages/HomeAdm.svelte";
   import CadastroSrc from "./pages/CadastroSRC.svelte";
   import AdmnistracaoPages from "./pages/admnistracaoPages.svelte";
-  import AdministracaoHorarios from "./pages/components/AdministracaoHorarios.svelte";
   import CadastroHora from "./pages/CadastroHora.svelte";
   import CadastroAdm from "./pages/CadastroADM.svelte"
 </script>
@@ -41,8 +40,13 @@
 
 {:else if $paginaAtual === "adm"}
   <AdmnistracaoPages />
-{/if}
 
-{#if $paginaAtual === "cadhora"}
+{:else if $paginaAtual === "admadm"}
+  <AdministracaoAdmins />
+
+{:else if $paginaAtual === "admuser"}
+  <AdministracaoUsuarios />
+
+{:else if $paginaAtual === "cadhora"}
   <CadastroHora />
 {/if}

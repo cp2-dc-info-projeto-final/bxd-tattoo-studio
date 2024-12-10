@@ -250,7 +250,7 @@ app.post('/adm/novo', verificarTokenAdm, async (req, res) => {
 
 
 // Rota para cadastrar um horário
-app.post('/horario/novo', (req, res) => {
+app.post('/horario/novo', verificarTokenAdm, (req, res) => {
   
   const { datetime } = req.body;
   const userId = req.userId; // Obtém o ID do usuário autenticado

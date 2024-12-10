@@ -135,15 +135,15 @@
 
   <!-- Modal para editar administrador -->
   {#if admParaEditar}
-    <div class="modal fade show" style="display: block;">
+    <div class="modal fade show" style="display: block;" id="modal-geral">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Editar Administrador</h5>
+            <h5 class="modal-title" style="color: black;">Editar Administrador</h5>
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <label for="nomeEditado">Nome:</label>
+              <label for="nomeEditado" style="color: black;">Nome:</label>
               <input
                 type="text"
                 id="nomeEditado"
@@ -152,7 +152,7 @@
               />
             </div>
             <div class="mb-3">
-              <label for="userEditado">Usuário:</label>
+              <label for="userEditado" style="color: black;">Usuário:</label>
               <input
                 type="text"
                 id="userEditado"
@@ -160,22 +160,15 @@
                 class="form-control"
               />
             </div>
-            <div class="mb-3">
-              <label for="senhaAdm">Senha (se desejar mudar):</label>
-              <input
-                type="password"
-                id="senhaAdm"
-                bind:value={senhaAdm}
-                class="form-control"
-              />
-            </div>
           </div>
           <div class="modal-footer">
             <button
+              id="b-edit"
               type="button"
               class="btn btn-secondary"
               on:click={cancelarEdicao}>Cancelar</button>
             <button
+              id="b-edit"
               type="button"
               class="btn btn-success"
               on:click={() =>
@@ -228,5 +221,4 @@ button#b1 {
   height: 60px;
   width:70px;
 }
-
 </style>

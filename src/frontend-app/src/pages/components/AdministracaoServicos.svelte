@@ -108,7 +108,7 @@
   {/if}
 
   <!-- Tabela responsiva -->
-  <div class="table-responsive">
+  <div class="table-responsive" id="table-geral">
     <table class="table table-striped table-bordered">
       <thead class="thead-dark">
         <tr>
@@ -119,7 +119,7 @@
           <th>Ações</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="table-geral">
         {#each $servicos as servico}
           <tr>
             <td>{servico.tamanho}</td>
@@ -142,7 +142,7 @@
 
   <!-- Modal para editar serviço -->
   {#if servicoParaEditar}
-    <div class="modal fade show" style="display: block;">
+    <div class="modal fade show" id="modal-geral" style="display: block;">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -189,10 +189,12 @@
           <div class="modal-footer">
             <button
               type="button"
+              id="b-edit"
               class="btn btn-secondary"
               on:click={cancelarEdicao}>Cancelar</button>
             <button
               type="button"
+              id="b-edit"
               class="btn btn-success"
               on:click={() =>
                 editarServico(servicoParaEditar.id_servico, {
@@ -243,6 +245,11 @@ button#b1 {
   border-radius: 15px;
   height: 60px;
   width:70px;
+}
+
+#table-geral {
+  width: 650px;
+  height: auto;
 }
 
 </style>
