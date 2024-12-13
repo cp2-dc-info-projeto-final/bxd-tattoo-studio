@@ -14,24 +14,21 @@
   let error = false;
 
   const carregarUsuarios = async () => {
-  try {
-    const response = await axios.get(`${apiBaseUrl}/usuarios`, {
-      withCredentials: true,
-    });
-
-    // Verifica se a estrutura de resposta é válida
-    if (response.data?.result?.usuarios) {
-      usuarios.set(response.data.result.usuarios);
-    } else {
-      throw new Error("Estrutura de dados inesperada.");
+    try {
+      const response = await axios.get(`${apiBaseUrl}/usuarios`, {
+        withCredentials: true,
+      });
+      if (response.data?.result?.usuarios) {
+        usuarios.set(response.data.result.usuarios);
+      } else {
+        throw new Error("Estrutura de dados inesperada.");
+      }
+    } catch (error) {
+      console.error("Erro ao carregar usuários:", error);
+      mensagem = "Erro ao carregar a lista de usuários.";
+      error = true;
     }
-  } catch (error) {
-    console.error("Erro ao carregar usuários:", error);
-    mensagem = "Erro ao carregar a lista de usuários.";
-    error = true;
-  }
-};
-
+  };
 
   const editarUsuario = async (id_usuario, dados) => {
     try {
@@ -47,11 +44,7 @@
       error = false;
     } catch (err) {
       console.error("Erro ao editar usuário:", err);
-      if (err.response && err.response.status === 409) {
-        mensagem = err.response.data.message || "Conflito ao tentar editar o usuário.";
-      } else {
-        mensagem = "Erro ao editar usuário.";
-      }
+      mensagem = "Erro ao editar usuário.";
       error = true;
     }
   };
@@ -95,147 +88,133 @@
   });
 </script>
 
-<div class="container mt-4 d-flex justify-content-center align-items-center" style="min-height: 100vh;">
-  <!-- Mensagem de status -->
-  {#if mensagem}
-    <div class="alert {error ? 'alert-danger' : 'alert-success'}">
-      {mensagem}
-    </div>
-  {/if}
+<main>
+  <div class="container mt-5">
+    <h1 class="text-center mb-4">Lista de Usuários</h1>
 
-  <!-- Tabela responsiva -->
-  <div class="table-responsive" id="t-geral">
-    <table class="table table-striped table-bordered">
-      <thead class="thead-dark">
-        <tr>
-          <th>Nome</th>
-          <th>Email</th>
-          <th>Idade</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each $usuarios as usuario}
+    <!-- Mensagem de status -->
+    {#if mensagem}
+      <div class="alert {error ? 'alert-danger' : 'alert-success'}">
+        {mensagem}
+      </div>
+    {/if}
+
+    <!-- Tabela responsiva -->
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered">
+        <thead class="thead-dark">
           <tr>
-            <td>{usuario.nome}</td>
-            <td>{usuario.email}</td>
-            <td>{usuario.idade}</td>
-            <td>
-              <button id="b1"
-                on:click={() => iniciarEdicao(usuario)}
-                class=""><img src="../../static/lapis.png"></button>
-              <button id="b2"
-                on:click={() => excluirUsuario(usuario.id_usuario)}
-                class="btn btn-danger btn-sm"><img src="../../static/trash.png" style="size: 20px;"></button>
-            </td>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Idade</th>
+            <th>Ações</th>
           </tr>
-        {/each}
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody>
+          {#each $usuarios as usuario}
+            <tr>
+              <td>{usuario.nome}</td>
+              <td>{usuario.email}</td>
+              <td>{usuario.idade}</td>
+              <td>
+                <button
+                  on:click={() => iniciarEdicao(usuario)}
+                  class="btn btn-warning btn-sm me-2">
+                  <img src="../../static/lapis.png" alt="Editar" style="width: 16px;" />
+                </button>
+                <button
+                  on:click={() => excluirUsuario(usuario.id_usuario)}
+                  class="btn btn-danger btn-sm">
+                  <img src="../../static/trash.png" alt="Excluir" style="width: 16px;" />
+                </button>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
 
-  <!-- Modal para editar usuário -->
-  {#if usuarioParaEditar}
-    <div class="modal fade show" id="modal-geral" style="display: block;">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Editar Usuário</h5>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="nomeEditado">Nome:</label>
-              <input
-                type="text"
-                id="nomeEditado"
-                bind:value={nomeEditado}
-                class="form-control"
-              />
+    <!-- Modal para editar usuário -->
+    {#if usuarioParaEditar}
+      <div class="modal fade show" style="display: block;">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Editar Usuário</h5>
+              <button
+                type="button"
+                class="btn-close"
+                aria-label="Close"
+                on:click={cancelarEdicao}></button>
             </div>
-            <div class="mb-3">
-              <label for="emailEditado">Email:</label>
-              <input
-                type="email"
-                id="emailEditado"
-                bind:value={emailEditado}
-                class="form-control"
-              />
+            <div class="modal-body">
+              <form>
+                <div class="mb-3">
+                  <label for="nomeEditado" class="form-label">Nome:</label>
+                  <input
+                    type="text"
+                    id="nomeEditado"
+                    bind:value={nomeEditado}
+                    class="form-control"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="emailEditado" class="form-label">Email:</label>
+                  <input
+                    type="email"
+                    id="emailEditado"
+                    bind:value={emailEditado}
+                    class="form-control"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="idadeEditada" class="form-label">Idade:</label>
+                  <input
+                    type="number"
+                    id="idadeEditada"
+                    bind:value={idadeEditada}
+                    class="form-control"
+                  />
+                </div>
+              </form>
             </div>
-            <div class="mb-3">
-              <label for="idadeEditada">Idade:</label>
-              <input
-                type="number"
-                id="idadeEditada"
-                bind:value={idadeEditada}
-                class="form-control"
-              />
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                on:click={cancelarEdicao}>Cancelar</button>
+              <button
+                type="button"
+                class="btn btn-success"
+                on:click={() =>
+                  editarUsuario(usuarioParaEditar.id_usuario, {
+                    nome: nomeEditado,
+                    email: emailEditado,
+                    idade: idadeEditada,
+                    senha: senhaAdm,
+                  })}>Salvar</button>
             </div>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              id="b-edit"
-              class="btn btn-secondary"
-              on:click={cancelarEdicao}>Cancelar</button>
-            <button
-              type="button"
-              class="btn btn-success"
-              id="b-edit"
-              on:click={() =>
-                editarUsuario(usuarioParaEditar.id_usuario, {
-                  nome: nomeEditado,
-                  email: emailEditado,
-                  idade: idadeEditada,
-                  senha: senhaAdm,
-                })}>Salvar</button>
           </div>
         </div>
       </div>
-    </div>
-  {/if}
-</div>
-
+    {/if}
+  </div>
+</main>
 
 <style>
-  /* Customização para tabelas e modal em telas pequenas */
   .table-responsive {
     overflow-x: auto;
   }
 
-  .modal {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
   .modal-dialog {
-    max-width: 90%;
+    max-width: 100%;
   }
 
-  /* Centraliza a div com id "t-geral" */
-  #t-geral {
-    width: 650px;
-    height: auto;
-  }
-
-  /* Estilos dos botões */
-  button#b1 {
-    background-color: #af760b;
-    color: #e0e0e0;
-    border: 1px solid #5a5a5a;
-    padding: 10px 16px;
-    border-radius: 15px;
-    height: 60px;
-    width: 70px;
-  }
-
-  button#b2 {
-    background-color: #9b1717;
-    color: #e0e0e0;
-    border: 1px solid #5a5a5a;
-    padding: 10px 16px;
-    border-radius: 15px;
-    height: 60px;
-    width: 70px;
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #000;
   }
 </style>

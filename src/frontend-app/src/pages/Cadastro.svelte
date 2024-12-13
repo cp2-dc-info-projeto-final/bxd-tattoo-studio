@@ -23,10 +23,10 @@
       });
       usuarios = res.data.usuarios;
       colunas_usuarios = Object.keys(usuarios[0]);
-      error = null; // Limpa o erro se a requisição for bem-sucedida
+      error = null;
     } catch (err) {
       console.error(err);
-      usuarios = null; // Limpa o resultado em caso de erro
+      usuarios = null;
     }
   };
 
@@ -48,12 +48,11 @@
         },
       );
       resultado = res.data;
-      error = null; // Limpa o erro se a requisição for bem-sucedida
-      // recarrega lista de usuários apresentada
+      error = null;
       carregarUsuarios();
-      irParaLogin(); // Redireciona para página de Login
+      irParaLogin();
     } catch (err) {
-      resultado = null; // Limpa o resultado em caso de erro
+      resultado = null;
     }
   };
 
@@ -66,7 +65,7 @@
 
 <main>
   <div class="container mt-5">
-    <div class="row justify-content-center m-auto align-items-center d-flex" style="width: 600px; padding-top: 100px; padding-bottom: 100px;">
+    <div class="row justify-content-center m-auto align-items-center d-flex" style="max-width: 600px; padding-top: 100px; padding-bottom: 100px;">
       <div class="col-md-5">
         <h2 class="text-center mb-4">Cadastrar-se</h2>
         <form on:submit|preventDefault={cadastrarUsuario}>
@@ -90,15 +89,21 @@
             <label for="conf_senha" class="form-label">Confirme sua senha</label>
             <input type="password" class="form-control" id="conf_senha" bind:value={conf_senha} placeholder="Confirme sua senha" required />
           </div>
-          {#if senha===conf_senha}
+          {#if senha === conf_senha}
           <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
           {/if}
         </form>
         
-        <p class="fs-5 pt-">Já possui cadastro?</p>
+        <p class="text-center mt-3">Já possui cadastro?</p>
         <button on:click={irParaLogin} class="btn btn-success w-100">Logar-se</button>
       </div>
     </div>
   </div>
 </main>
 
+<style>
+  main {
+    max-width: 600px;
+    margin: auto;
+  }
+</style>

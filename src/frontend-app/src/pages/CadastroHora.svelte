@@ -1,89 +1,82 @@
 <script>
-  import { onMount } from 'svelte';
-  let datetime = '';  // variável para armazenar a data e hora
-  let mensagem = '';   // variável para exibir mensagem de sucesso ou erro
-
-  // Função para enviar os dados do horário para a API
-  const cadastrarHorario = async () => {
-      try {
-          // Verifica se o campo datetime está preenchido
-          if (!datetime) {
-              mensagem = 'Por favor, preencha o campo de data e hora.';
-              return;
-          }
-
-          // Envia a requisição POST para a API
-          const response = await fetch('http://localhost:3000/horario/novo', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-                  // 'Authorization': 'Bearer seu_token_aqui',  // Adicione o token se necessário
-              },
-              body: JSON.stringify({ datetime })
-          });
-
-          // Verifica a resposta da API
-          if (response.ok) {
-              const data = await response.json();
-              mensagem = 'Horário cadastrado com sucesso!';
-              console.log(data); // Aqui você pode processar os dados de resposta da API
-          } else {
-              const error = await response.json();
-              mensagem = `Erro: ${error.message || 'Erro ao cadastrar horário'}`;
-          }
-      } catch (err) {
-          // Captura erros na requisição
-          mensagem = `Erro de comunicação: ${err.message}`;
+    import { onMount } from "svelte";
+    import axios from "axios";
+    import { api_base_url } from "../stores/navigation"; 
+  
+    // Variáveis reativas para o formulário
+    export let data = "";
+    export let horario = "";
+    export let mensagem = null;
+    export let error = null;
+  
+    // Função para enviar um novo horário à API
+    const cadastrarHorario = async () => {
+      if (!data || !horario) {
+        error = "Data e horário são obrigatórios.";
+        mensagem = null;
+        return;
       }
-  };
-</script>
-
-<style>
-  form {
-      margin: 20px 0;
-  }
-  input {
-      padding: 8px;
-      margin: 10px 0;
-      font-size: 14px;
-      width: 100%;
-      max-width: 300px;
-  }
-  button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-  }
-  button:hover {
-      background-color: #45a049;
-  }
-  .mensagem {
-      margin-top: 20px;
-      padding: 10px;
-      color: #fff;
-      border-radius: 5px;
-  }
-  .sucesso {
-      background-color: #4CAF50;
-  }
-  .erro {
-      background-color: #f44336;
-  }
-</style>
-
-<h1>Cadastrar Novo Horário</h1>
-
-<form on:submit|preventDefault={cadastrarHorario}>
-  <label for="datetime">Data e Hora:</label>
-  <input type="datetime-local" id="datetime" bind:value={datetime} required />
-  <button type="submit">Cadastrar</button>
-</form>
-
-{#if mensagem}
-  <div class="mensagem {mensagem.includes('sucesso') ? 'sucesso' : 'erro'}">
-      {mensagem}
-  </div>
-{/if}
+  
+      // Formata a data e o horário
+      const horaFormatada = `${data} ${horario}`;
+      try {
+        const res = await axios.post(
+          `${api_base_url}/horario/novo`,
+          { hora: horaFormatada },
+          {
+            headers: { Accept: "application/json" },
+            withCredentials: true, // Inclui os cookies para autenticação
+          }
+        );
+        mensagem = res.data.message;
+        error = null;
+      } catch (err) {
+        error = err.response?.data?.message || "Erro ao cadastrar horário.";
+        mensagem = null;
+      }
+    };
+  </script>
+  
+  <main>
+    <div class="container mt-5">
+      <div class="row justify-content-center align-items-center">
+        <div class="col-lg-6 col-md-8 col-sm-12">
+          <h2 class="text-center mb-4">Disponibilizar Horários</h2>
+          <form on:submit|preventDefault={cadastrarHorario}>
+            <div class="mb-3">
+              <label for="data" class="form-label">Data</label>
+              <input
+                type="date"
+                id="data"
+                class="form-control"
+                bind:value={data}
+                required
+              />
+            </div>
+  
+            <div class="mb-3">
+              <label for="horario" class="form-label">Horário</label>
+              <input
+                type="time"
+                id="horario"
+                class="form-control"
+                bind:value={horario}
+                required
+              />
+            </div>
+  
+            <button type="submit" class="btn btn-primary w-100">Cadastrar Horário</button>
+          </form>
+  
+          {#if mensagem}
+            <p class="alert alert-success mt-3">{mensagem}</p>
+          {/if}
+  
+          {#if error}
+            <p class="alert alert-danger mt-3">{error}</p>
+          {/if}
+        </div>
+      </div>
+    </div>
+  </main>
+  
