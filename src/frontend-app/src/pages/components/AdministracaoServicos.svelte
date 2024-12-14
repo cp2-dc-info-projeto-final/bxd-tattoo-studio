@@ -6,21 +6,16 @@
   const apiBaseUrl = "http://localhost:3000";
   const servicos = writable([]);
   let servicoParaEditar = null;
-  let tamanhoEditado = "";
-  let complexidadeEditada = "";
-  let coresEditadas = "";
   let precoEditado = "";
   let mensagem = "";
   let error = false;
 
-  // Função para carregar serviços
   const carregarServicos = async () => {
     try {
       const response = await axios.get(`${apiBaseUrl}/servicos`, {
         withCredentials: true,
       });
 
-      // Verifica se a estrutura de resposta é válida
       if (response.data?.result?.servicos) {
         servicos.set(response.data.result.servicos);
       } else {
@@ -33,18 +28,17 @@
     }
   };
 
-  // Função para editar um serviço
-  const editarServico = async (id_servico, dados) => {
+  const editarPrecoServico = async (id_servico, preco) => {
     try {
       const response = await axios.put(
         `${apiBaseUrl}/servicos/${id_servico}`,
-        dados,
+        { preco },
         { withCredentials: true }
       );
-      if (response.status !== 200) throw new Error("Erro ao editar serviço.");
+      if (response.status !== 200) throw new Error("Erro ao editar o serviço.");
       await carregarServicos();
       cancelarEdicao();
-      mensagem = "Serviço atualizado com sucesso!";
+      mensagem = "Preço atualizado com sucesso!";
       error = false;
     } catch (err) {
       console.error("Erro ao editar serviço:", err);
@@ -53,7 +47,6 @@
     }
   };
 
-  // Função para excluir um serviço
   const excluirServico = async (id_servico) => {
     if (confirm("Tem certeza que deseja excluir este serviço?")) {
       try {
@@ -73,148 +66,185 @@
     }
   };
 
-  // Inicia edição de serviço
   const iniciarEdicao = (servico) => {
     servicoParaEditar = servico;
-    tamanhoEditado = servico.tamanho;
-    complexidadeEditada = servico.complexidade;
-    coresEditadas = servico.cores;
     precoEditado = servico.preco;
   };
 
-  // Cancela a edição
   const cancelarEdicao = () => {
     servicoParaEditar = null;
-    tamanhoEditado = "";
-    complexidadeEditada = "";
-    coresEditadas = "";
     precoEditado = "";
   };
 
-  // Carrega serviços ao montar a página
   onMount(() => {
     carregarServicos();
   });
 </script>
 
-<div class="container mt-4">
-  <h1 class="text-center mb-4">Lista de Serviços</h1>
+<main>
+  <div class="container mt-5">
+    <h1 class="text-center mb-4">Lista de Serviços</h1>
 
-  <!-- Mensagem de status -->
-  {#if mensagem}
-    <div class="alert {error ? 'alert-danger' : 'alert-success'}">
-      {mensagem}
-    </div>
-  {/if}
+    <!-- Mensagem de status -->
+    {#if mensagem}
+      <div class="alert {error ? 'alert-danger' : 'alert-success'} text-center">
+        {mensagem}
+      </div>
+    {/if}
 
-  <!-- Tabela responsiva -->
-  <div class="table-responsive" id="table-geral">
-    <table class="table table-striped table-bordered">
-      <thead class="thead-dark">
-        <tr>
-          <th>Tamanho</th>
-          <th>Complexidade</th>
-          <th>Cores</th>
-          <th>Preço</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="table-geral">
-        {#each $servicos as servico}
+    <!-- Tabela responsiva -->
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover">
+        <thead class="thead-light">
           <tr>
-            <td>{servico.tamanho}</td>
-            <td>{servico.complexidade}</td>
-            <td>{servico.cores}</td>
-            <td>{servico.preco}</td>
-            <td>
-              <button id="b1"
-                on:click={() => iniciarEdicao(servico)}
-                class=""><img src="../../static/lapis.png"></button>
-              <button id="b2"
-                on:click={() => excluirServico(servico.id_servico)}
-                class="btn btn-danger btn-sm"><img src="../../static/trash.png" style="size: 20px;"></button>
-            </td>
+            <th class="text-center">ID</th>
+            <th class="text-center">Tamanho</th>
+            <th class="text-center">Complexidade</th>
+            <th class="text-center">Cores</th>
+            <th class="text-center">Preço</th>
+            <th class="text-center">Ações</th>
           </tr>
-        {/each}
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody>
+          {#each $servicos as servico}
+            <tr>
+              <td class="text-center align-middle">{servico.id_servico}</td>
+              <td class="text-center align-middle">{servico.tamanho}</td>
+              <td class="text-center align-middle">{servico.complexidade}</td>
+              <td class="text-center align-middle">{servico.cores}</td>
+              <td class="text-center align-middle text-success fw-bold">
+                R$ {servico.preco.toFixed(2)}
+              </td>
+              <td class="text-center align-middle">
+                <button
+                  on:click={() => iniciarEdicao(servico)}
+                  class="btn btn-warning btn-sm me-2">
+                  <img src="../../static/lapis.png" alt="Editar" style="width: 16px;" />
+                </button>
+                <button
+                  on:click={() => excluirServico(servico.id_servico)}
+                  class="btn btn-danger btn-sm">
+                  <img src="../../static/trash.png" alt="Excluir" style="width: 16px;" />
+                </button>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
 
-  <!-- Modal para editar serviço -->
-  {#if servicoParaEditar}
-    <div class="modal fade show" id="modal-geral" style="display: block;">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Editar Serviço</h5>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="tamanhoEditado">Tamanho:</label>
-              <input
-                type="text"
-                id="tamanhoEditado"
-                bind:value={tamanhoEditado}
-                class="form-control"
-              />
+    <!-- Modal para editar preço -->
+    {#if servicoParaEditar}
+      <div class="modal fade show" style="display: block;">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Editar Preço</h5>
+              <button
+                type="button"
+                class="btn-close"
+                aria-label="Close"
+                on:click={cancelarEdicao}></button>
             </div>
-            <div class="mb-3">
-              <label for="complexidadeEditada">Complexidade:</label>
-              <input
-                type="text"
-                id="complexidadeEditada"
-                bind:value={complexidadeEditada}
-                class="form-control"
-              />
+            <div class="modal-body">
+              <form>
+                <div class="mb-3">
+                  <label for="tamanhoServico" class="form-label">Tamanho:</label>
+                  <input
+                    type="text"
+                    id="tamanhoServico"
+                    class="form-control"
+                    value={servicoParaEditar.tamanho}
+                    disabled
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="complexidadeServico" class="form-label">Complexidade:</label>
+                  <input
+                    type="text"
+                    id="complexidadeServico"
+                    class="form-control"
+                    value={servicoParaEditar.complexidade}
+                    disabled
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="coresServico" class="form-label">Cores:</label>
+                  <input
+                    type="text"
+                    id="coresServico"
+                    class="form-control"
+                    value={servicoParaEditar.cores}
+                    disabled
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="precoEditado" class="form-label">Preço:</label>
+                  <input
+                    type="number"
+                    id="precoEditado"
+                    bind:value={precoEditado}
+                    class="form-control"
+                    step="0.01"
+                    min="0"
+                  />
+                </div>
+              </form>
             </div>
-            <div class="mb-3">
-              <label for="coresEditadas">Cores:</label>
-              <input
-                type="text"
-                id="coresEditadas"
-                bind:value={coresEditadas}
-                class="form-control"
-              />
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                on:click={cancelarEdicao}>Cancelar</button>
+              <button
+                type="button"
+                class="btn btn-success"
+                on:click={() =>
+                  editarPrecoServico(servicoParaEditar.id_servico, parseFloat(precoEditado))}>
+                Salvar
+              </button>
             </div>
-            <div class="mb-3">
-              <label for="precoEditado">Preço:</label>
-              <input
-                type="number"
-                id="precoEditado"
-                bind:value={precoEditado}
-                class="form-control"
-              />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              id="b-edit"
-              class="btn btn-secondary"
-              on:click={cancelarEdicao}>Cancelar</button>
-            <button
-              type="button"
-              id="b-edit"
-              class="btn btn-success"
-              on:click={() =>
-                editarServico(servicoParaEditar.id_servico, {
-                  tamanho: tamanhoEditado,
-                  complexidade: complexidadeEditada,
-                  cores: coresEditadas,
-                  preco: precoEditado,
-                })}>Salvar</button>
           </div>
         </div>
       </div>
-    </div>
-  {/if}
-</div>
-
+    {/if}
+  </div>
+</main>
 
 <style>
-  /* Customização para tabelas e modal em telas pequenas */
-  .table-responsive {
-    overflow-x: auto;
+  .table-bordered th,
+  .table-bordered td {
+    border: 2px solid #dee2e6;
+  }
+
+  .thead-light th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: #f1f3f5;
+  }
+
+  .btn {
+    border-radius: 4px;
+  }
+
+  .btn-warning {
+    background-color: #ffc107;
+    border-color: #ffca2c;
+  }
+
+  .btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #000;
   }
 
   .modal {
@@ -226,30 +256,9 @@
   .modal-dialog {
     max-width: 90%;
   }
-  
-button#b1 {
-  background-color: #af760b;
-  color: #e0e0e0;
-  border: 1px solid #5a5a5a;
-  padding: 10px 16px;
-  border-radius: 15px;
-  height: 60px;
-  width:70px;
-}
 
-  button#b2 {
-  background-color: #9b1717;
-  color: #e0e0e0;
-  border: 1px solid #5a5a5a;
-  padding: 10px 16px;
-  border-radius: 15px;
-  height: 60px;
-  width:70px;
-}
-
-#table-geral {
-  width: 650px;
-  height: auto;
-}
-
+  textarea[disabled],
+  input[disabled] {
+    background-color: #f8f9fa !important;
+  }
 </style>

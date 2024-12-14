@@ -65,7 +65,7 @@
 
 <main>
   <div class="container mt-5">
-    <div class="row justify-content-center m-auto align-items-center d-flex" style="max-width: 600px; padding-top: 100px; padding-bottom: 100px;">
+    <div class="row justify-content-center m-auto align-items-center d-flex" style="max-width: 600px;">
       <div class="col-md-5">
         <h2 class="text-center mb-4">Cadastrar-se</h2>
         <form on:submit|preventDefault={cadastrarUsuario}>

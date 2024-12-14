@@ -464,8 +464,6 @@ app.put('/usuarios/:id_usuario', verificarTokenAdm, (req, res) => {
   }
 });
 
-
-
 // Rota para editar um adm
 app.put('/adms/:id_adm', verificarTokenAdm, (req, res) => {
   const { id_adm } = req.params;
@@ -485,12 +483,12 @@ app.put('/adms/:id_adm', verificarTokenAdm, (req, res) => {
 // Rota para editar um servico
 app.put('/servicos/:id_servico', verificarTokenAdm, (req, res) => {
   const { id_servico } = req.params;
-  const { tamanho, complexidade, cores, preco } = req.body;
+  const { preco } = req.body;
 
-  const servicoAtualizado = { tamanho, complexidade, cores, preco };
+  const servicoAtualizado = { preco };
 
-  db.run('UPDATE servico SET tamanho = ?, compexidade = ?, cores = ?, preco = ? WHERE id_servico = ?',
-    [servicoAtualizado.tamanho, servicoAtualizado.complexidade, servicoAtualizado.cores, servicoAtualizado.preco, id_servico],
+  db.run('UPDATE servico SET preco = ? WHERE id_servico = ?',
+    [servicoAtualizado.preco, id_servico],
     function (err) {
       if (err) return res.status(500).json({ message: 'Erro ao atualizar serviço.' });
       res.json({ message: 'Serviço atualizado com sucesso!' });
