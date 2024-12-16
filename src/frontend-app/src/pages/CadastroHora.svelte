@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import axios from "axios";
     import { api_base_url } from "../stores/navigation"; 
+    import HeaderAdm from "./header/HeaderAdm.svelte";
   
     // Variáveis reativas para o formulário
     export let data = "";
@@ -37,6 +38,7 @@
     };
   </script>
   
+  <HeaderAdm />
   <main>
     <div class="container mt-5">
       <div class="row justify-content-center align-items-center">

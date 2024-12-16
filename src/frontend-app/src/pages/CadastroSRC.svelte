@@ -1,6 +1,7 @@
 <script>
   import { irParaLogin } from "../stores/navigation";
   import axios from "axios";
+  import HeaderAdm from "./header/HeaderAdm.svelte";
 
   let usuario = {};
   let tamanho;
@@ -49,6 +50,7 @@
   pegaDadosUsuario();
 </script>
 
+<HeaderAdm />
 <main>
   <div class="container mt-5">
     <div class="row justify-content-center align-items-center">

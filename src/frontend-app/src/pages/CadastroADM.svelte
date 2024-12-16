@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import HeaderAdm from "./header/HeaderAdm.svelte";
   import axios from "axios";
   import { api_base_url, irParaLogin, paginaAtual } from "../stores/navigation";
 
@@ -36,6 +37,7 @@
   };
 </script>
 
+<HeaderAdm />
 <main class="container mt-5">
   <h1 class="text-center mb-4">Cadastro de Administrador</h1>
 
