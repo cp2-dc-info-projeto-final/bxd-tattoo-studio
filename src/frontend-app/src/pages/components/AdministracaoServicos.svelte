@@ -2,6 +2,7 @@
   import { writable } from "svelte/store";
   import { onMount } from "svelte";
   import axios from "axios";
+  import HeaderAdm from "../header/HeaderAdm.svelte";
 
   const apiBaseUrl = "http://localhost:3000";
   const servicos = writable([]);
@@ -80,6 +81,8 @@
     carregarServicos();
   });
 </script>
+
+<HeaderAdm />
 
 <main>
   <div class="container mt-5">

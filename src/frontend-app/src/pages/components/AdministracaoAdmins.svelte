@@ -2,6 +2,7 @@
   import { writable } from "svelte/store";
   import { onMount } from "svelte";
   import axios from "axios";
+  import HeaderAdm from "../header/HeaderAdm.svelte"
 
   const apiBaseUrl = "http://localhost:3000";
   const adms = writable([]);
@@ -93,7 +94,8 @@
   });
 </script>
 
-
+<HeaderAdm />
+<main>
 <div class="container mt-4">
   <h1 class="text-center mb-4">Lista de Administradores</h1>
 
@@ -122,7 +124,7 @@
             <td>
               <button id="b1"
                 on:click={() => iniciarEdicao(adm)}
-                class=""><img src="../../static/lapis.png"></button>
+                class="btn-warning"><img src="../../static/lapis.png"></button>
               <button id="b2"
                 on:click={() => excluirAdm(adm.id_adm)}
                 class="btn btn-danger btn-sm"><img src="../../static/trash.png" style="size: 20px;"></button>
@@ -183,7 +185,7 @@
     </div>
   {/if}
 </div>
-
+</main>
 
 
 <style>
@@ -202,23 +204,25 @@
     max-width: 90%;
   }
   
-button#b1 {
-  background-color: #af760b;
-  color: #e0e0e0;
-  border: 1px solid #5a5a5a;
-  padding: 10px 16px;
-  border-radius: 15px;
-  height: 60px;
-  width:70px;
-}
+  .btn {
+    border-radius: 4px;
+  }
 
-  button#b2 {
-  background-color: #9b1717;
-  color: #e0e0e0;
-  border: 1px solid #5a5a5a;
-  padding: 10px 16px;
-  border-radius: 15px;
-  height: 60px;
-  width:70px;
-}
+  .btn-warning {
+    background-color: #ffc107;
+    border-color: #ffca2c;
+  }
+
+  .btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #000;
+  }
+
 </style>
