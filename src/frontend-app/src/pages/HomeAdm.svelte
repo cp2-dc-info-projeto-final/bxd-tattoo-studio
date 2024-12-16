@@ -7,8 +7,8 @@
     administrarServico,
     administrarHora,
     irParaCadastroHora,
-    iframeAtual,
-  } from "../stores/iframeNavigation";
+    paginaAtual,
+  } from "../stores/navigation";
 
   // Controle de visibilidade das seções
   let isCollapsed = {
@@ -33,7 +33,7 @@
       editarHora: "/components/AdministracaoHorarios.svelte",
       cadastroHora: "/CadastroHora.svelte",
     };
-    iframeSrc = mapaIframes[$iframeAtual] || "about:blank";
+    iframeSrc = mapaIframes[$paginaAtual] || "about:blank";
   }
 </script>
 

@@ -1,5 +1,6 @@
 <script>
   import { writable } from "svelte/store";
+  import HeaderAdm from "../header/HeaderAdm.svelte";
   import { onMount } from "svelte";
   import axios from "axios";
 
@@ -89,6 +90,7 @@
 </script>
 
 <main>
+  <HeaderAdm/>
   <div class="container mt-5">
     <h1 class="text-center mb-4">Lista de Usuários</h1>
 
