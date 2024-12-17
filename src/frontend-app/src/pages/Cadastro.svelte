@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import axios from "axios";
+  import HeaderUser from "../pages/header/HeaderUser.svelte"
   export let nome = '';
   let message = '';
   export let email = '';
@@ -63,6 +64,7 @@
   });
 </script>
 
+<HeaderUser />
 <main>
   <div class="container mt-5">
     <div class="row justify-content-center m-auto align-items-center d-flex" style="max-width: 600px;">
