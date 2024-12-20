@@ -31,28 +31,45 @@
   };
 </script>
 
-<main>
-  <h1>Cadastro de Horário</h1>
+<main class="container mt-5">
+  <h1 class="text-center mb-4">Cadastro de Horário</h1>
 
-  <form on:submit|preventDefault={cadastrarHorario}>
-    <div>
-      <label for="datetime">Data e Hora</label>
+  <form class="row g-3" on:submit|preventDefault={cadastrarHorario}>
+    <div class="col-12">
+      <label for="datetime" class="form-label">Data e Hora</label>
       <input
         type="datetime-local"
         id="datetime"
         bind:value={datetime}
+        class="form-control"
         required
       />
     </div>
 
     {#if error}
-      <div class="error">{error}</div>
+      <div class="col-12 alert alert-danger">{error}</div>
     {/if}
 
     {#if resultado}
-      <div class="success">{resultado.message}</div>
+      <div class="col-12 alert alert-success">{resultado.message}</div>
     {/if}
 
-    <button type="submit">Cadastrar Horário</button>
+    <div class="col-12 text-center">
+      <button type="submit" class="btn btn-primary w-100 w-md-auto">Cadastrar Horário</button>
+    </div>
   </form>
 </main>
+
+<style>
+  main {
+    max-width: 100%;
+    margin: auto;
+    padding: 15px;
+  }
+
+  @media (min-width: 768px) {
+    main {
+      max-width: 600px;
+    }
+  }
+</style>
