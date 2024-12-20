@@ -290,67 +290,6 @@ app.post('/horario/novo', verificarTokenAdm, (req, res) => {
   );
 });
 
-
-//Rota para cancelar um horário
-app.patch('/horarios/:id/cancelar', verificarToken, (req, res) => {
-  const { id } = req.params;
-
-  db.run(
-      'UPDATE horario SET usuario_sk = NULL WHERE id_horario = ?',
-      [id],
-      function (err) {
-          if (err) {
-              return res.status(500).json({ message: 'Erro ao cancelar o agendamento do horário.' });
-          }
-
-          if (this.changes === 0) {
-              return res.status(404).json({ message: 'Horário não encontrado ou já está disponível.' });
-          }
-
-          res.status(200).json({ message: 'Horário cancelado com sucesso e agora está disponível.' });
-      }
-  );
-});
-
-//Rota para listar horários
-app.get('/horarios/disponiveis', async (req, res) => {
-  try {
-    console.log('Requisição recebida para verificar horários disponíveis');
-    // Log para verificar o formato de data/hora que está sendo comparado
-    console.log('Dados recebidos:', req.body); // ou req.query, dependendo da implementação
-
-    // Lógica de verificação da disponibilidade aqui...
-
-    res.json(horarios);  // Dados com os horários disponíveis
-  } catch (error) {
-    console.error('Erro ao processar a requisição', error);
-    res.status(500).json({ message: 'Erro no servidor ao verificar horários' });
-  }
-});
-
-
-//Rota para agendar um horário
-app.patch('/horarios/:id/agendar', verificarToken, (req, res) => {
-  const { id } = req.params;
-  const userId = req.userId; // Obtido a partir do middleware de verificação de token
-
-  db.run(
-      'UPDATE horario SET usuario_sk = ? WHERE id_horario = ? AND usuario_sk IS NULL',
-      [userId, id],
-      function (err) {
-          if (err) {
-              return res.status(500).json({ message: 'Erro ao agendar o horário.' });
-          }
-
-          if (this.changes === 0) {
-              return res.status(400).json({ message: 'Horário já está agendado ou não encontrado.' });
-          }
-
-          res.status(200).json({ message: 'Horário agendado com sucesso.' });
-      }
-  );
-});
-
 // Rota de logout
 app.post('/api/logout', (req, res) => {
   res.clearCookie('token'); // Limpa o cookie do token
@@ -403,29 +342,26 @@ app.get("/servicos", (req, res) => {
   });
 });
 
-//Rota para listar horarios
-app.get('/horarios/listar', async (req, res) => {
-    try {
-        const horarios = await db.all('SELECT * FROM horario WHERE disponibilidade = 1');
-        res.status(200).json(horarios);
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar horários.' });
+// Rota para listar horários onde usuario_sk é nulo, com data e hora separados
+app.get("/horarios", (req, res) => {
+  db.all(`
+    SELECT 
+      h.id_horario, 
+      SUBSTR(h.datetime, 1, 10) AS data,   -- Extrai a parte da data (YYYY-MM-DD)
+      SUBSTR(h.datetime, 12, 5) AS hora     -- Extrai a parte da hora (HH:MM)
+    FROM horario h
+    WHERE h.usuario_sk IS NULL            -- Filtra onde usuario_sk é nulo
+  `, [], (err, rows) => {
+    if (err) {
+      console.error("Erro ao obter horários:", err.message);
+      return res.status(500).json({ message: "Erro ao carregar horários." });
     }
-});
-
-//Rota para agendar horário
-app.patch('/horarios/:id/agendar', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const result = await db.run('UPDATE horario SET disponibilidade = 0 WHERE id_horario = ? AND disponibilidade = 1', [id]);
-        if (result.changes > 0) {
-            res.status(200).json({ message: 'Horário agendado com sucesso.' });
-        } else {
-            res.status(400).json({ message: 'Horário já está indisponível ou não encontrado.' });
-        }
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao agendar horário.' });
-    }
+    res.status(200).json({
+      result: {
+        horarios: rows || [], // Garante que retorne um array mesmo que vazio
+      },
+    });
+  });
 });
 
 
