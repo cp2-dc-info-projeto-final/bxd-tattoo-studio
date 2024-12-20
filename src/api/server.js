@@ -343,7 +343,7 @@ app.get("/servicos", (req, res) => {
 });
 
 // Rota para listar horários onde usuario_sk é nulo, com data e hora separados
-app.get("/horarios", (req, res) => {
+app.get("/horarios", verificarTokenAdm, (req, res) => {
   db.all(`
     SELECT 
       h.id_horario, 
@@ -361,6 +361,78 @@ app.get("/horarios", (req, res) => {
         horarios: rows || [], // Garante que retorne um array mesmo que vazio
       },
     });
+  });
+});
+
+// Rota para listar horários de uma data específica, onde usuario_sk é nulo, retornando apenas a hora
+app.get("/horarios/:data", verificarTokenAdm, (req, res) => {
+  let { data } = req.params; // Obtém a data fornecida na URL (formato DD/MM/YYYY)
+
+  // Valida o formato da data para garantir que seja no formato DD/MM/YYYY
+  const dataRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+  if (!dataRegex.test(data)) {
+    return res.status(400).json({ message: "Data no formato inválido. Use o formato DD/MM/YYYY." });
+  }
+
+  // Converte a data do formato brasileiro (DD/MM/YYYY) para o formato ISO (YYYY-MM-DD)
+  const partesData = data.split('/');
+  const dataConvertida = `${partesData[2]}-${partesData[1]}-${partesData[0]}`;  // YYYY-MM-DD
+
+  db.all(`
+    SELECT 
+      SUBSTR(h.datetime, 12, 5) AS hora     -- Extrai apenas a parte da hora (HH:MM)
+    FROM horario h
+    WHERE h.usuario_sk IS NULL
+      AND SUBSTR(h.datetime, 1, 10) = ?    -- Filtra pela data específica
+  `, [dataConvertida], (err, rows) => {
+    if (err) {
+      console.error("Erro ao obter horários:", err.message);
+      return res.status(500).json({ message: "Erro ao carregar horários." });
+    }
+    res.status(200).json({
+      result: {
+        horarios: rows.map(row => row.hora) || [], // Retorna apenas as horas
+      },
+    });
+  });
+});
+
+// Rota para buscar preço de serviço com base no tamanho, complexidade e cores
+app.get("/preco-servico", verificarToken, (req, res) => {
+  const { tamanho, complexidade, cores } = req.query;
+
+  // Verifica o tamanho e mapeia para a categoria adequada
+  let tamanhoCategoria = "";
+  const tamanhoNumero = parseInt(tamanho); // Convertendo tamanho para número inteiro
+  
+  if (tamanhoNumero >= 0 && tamanhoNumero <= 5) {
+    tamanhoCategoria = "pequeno";
+  } else if (tamanhoNumero > 5 && tamanhoNumero <= 15) {
+    tamanhoCategoria = "medio";
+  } else if (tamanhoNumero > 15) {
+    tamanhoCategoria = "grande";
+  } else {
+    return res.status(400).json({ message: "Tamanho inválido." });
+  }
+
+  // Monta a consulta com base nos parâmetros fornecidos
+  const query = `SELECT preco FROM servico WHERE tamanho = ? AND complexidade = ? AND cores = ?`;
+
+  db.get(query, [tamanhoCategoria, complexidade, cores], (err, row) => {
+    if (err) {
+      console.error("Erro ao buscar preço:", err.message);
+      return res.status(500).json({ message: "Erro ao buscar preço do serviço." });
+    }
+    
+    if (row) {
+      res.status(200).json({
+        result: {
+          preco: row.preco, // Retorna o preço do serviço encontrado
+        },
+      });
+    } else {
+      res.status(404).json({ message: "Serviço não encontrado." });
+    }
   });
 });
 
