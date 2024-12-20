@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import axios from "axios";
+  import HeaderAdm from "./header/HeaderAdm.svelte";
   import { api_base_url } from "../stores/navigation"; // Ajuste o caminho conforme necessário
 
   // Variáveis para os dados do formulário
@@ -31,8 +32,9 @@
   };
 </script>
 
+<HeaderAdm />
 <main class="container mt-5">
-  <h1 class="text-center mb-4">Cadastro de Horário</h1>
+  <h1 class="text-center mb-4">Disponibilizador de Horários</h1>
 
   <form class="row g-3" on:submit|preventDefault={cadastrarHorario}>
     <div class="col-12">
@@ -55,7 +57,7 @@
     {/if}
 
     <div class="col-12 text-center">
-      <button type="submit" class="btn btn-primary w-100 w-md-auto">Cadastrar Horário</button>
+      <button type="submit" class="btn btn-primary w-100 w-md-auto">Disponibilizar Horário</button>
     </div>
   </form>
 </main>
