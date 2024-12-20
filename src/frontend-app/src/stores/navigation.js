@@ -88,6 +88,21 @@ export const irParaCadastroHora = () => {
   paginaAtual.set("cadhora");
 };
 
+// Função para redirecionar para a página de agendamento
+export const agendamento1 = () => {
+  paginaAtual.set("ag1");
+};
+
+// Função para redirecionar para a página de agendamento
+export const agendamento2 = () => {
+  paginaAtual.set("ag2");
+};
+
+// Função para redirecionar para a página de agendamento
+export const agendamento3 = () => {
+  paginaAtual.set("ag3");
+};
+
 
 // Define a URL base da API
 export const api_base_url = "http://localhost:3000";

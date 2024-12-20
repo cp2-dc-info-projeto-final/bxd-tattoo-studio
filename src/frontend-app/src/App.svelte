@@ -13,7 +13,9 @@
   import Home from "./pages/Home.svelte";
   import Login from "./pages/Login.svelte";
   import Cadastro from "./pages/Cadastro.svelte";
-  import Agendamento from "./pages/Agendamento.svelte";
+  import Agendamento1 from "./pages/Agendamento/Agendamento1.svelte";
+  import Agendamento2 from "./pages/Agendamento/Agendamento2.svelte";
+  import Agendamento3 from "./pages/Agendamento/Agendamento3.svelte";
   import AdministracaoAdmins from "./pages/components/AdministracaoAdmins.svelte";
   import AdministracaoUsuarios from "./pages/components/AdministracaoUsuarios.svelte";
   import AdministracaoServicos from "./pages/components/AdministracaoServicos.svelte";
@@ -32,7 +34,7 @@
 {:else if $paginaAtual === "cadastro"}
   <Cadastro />
 {:else if $paginaAtual === "agendamento"}
-  <Agendamento />
+  <Agendamento1 />
 {:else if $paginaAtual === "homeadm"}
   <HomeAdm />
 {:else if $paginaAtual === "adm"}
@@ -51,4 +53,10 @@
   <CadastroAdm />
 {:else if $paginaAtual === "cadhora"}
   <CadastroHora />
+  {:else if $paginaAtual === "ag1"}
+  <Agendamento1 />
+{:else if $paginaAtual === "ag2"}
+  <Agendamento2 />
+{:else if $paginaAtual === "ag3"}
+  <Agendamento3 />
 {/if}

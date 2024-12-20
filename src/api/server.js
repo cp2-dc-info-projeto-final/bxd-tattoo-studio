@@ -365,7 +365,7 @@ app.get("/horarios", verificarTokenAdm, (req, res) => {
 });
 
 // Rota para buscar horários em data especifica
-app.get("/horarios/:data", verificarTokenAdm, (req, res) => {
+app.get("/horarios/:data", verificarToken, (req, res) => {
   const dataSelecionada = req.params.data; // Recebe a data no formato YYYY-MM-DD
 
   db.all(`
@@ -391,7 +391,7 @@ app.get("/horarios/:data", verificarTokenAdm, (req, res) => {
 });
 
 // Rota para buscar preço de serviço com base no tamanho, complexidade e cores
-app.get("/preco-servico", verificarToken, (req, res) => {
+app.get("/preco-servico", (req, res) => {
   const { tamanho, complexidade, cores } = req.query;
 
   // Verifica o tamanho e mapeia para a categoria adequada
@@ -426,6 +426,113 @@ app.get("/preco-servico", verificarToken, (req, res) => {
     } else {
       res.status(404).json({ message: "Serviço não encontrado." });
     }
+  });
+});
+
+// Rota para atualizar o campo usuario_sk no horário, para associar ao usuário logado (AGENDAMENTO)
+app.put("/horarios/:id", verificarToken, (req, res) => {
+  const idHorario = req.params.id;  // ID do horário a ser atualizado
+  const usuarioId = req.usuario.id_usuario;  // ID do usuário logado, proveniente do token
+
+  // Verifica se o id_horario é válido e se o usuario_sk está nulo
+  db.get(`
+    SELECT usuario_sk
+    FROM horario
+    WHERE id_horario = ? AND usuario_sk IS NULL
+  `, [idHorario], (err, row) => {
+    if (err) {
+      console.error("Erro ao buscar horário:", err.message);
+      return res.status(500).json({ message: "Erro ao verificar horário." });
+    }
+    
+    if (!row) {
+      return res.status(404).json({ message: "Horário não encontrado ou já está ocupado." });
+    }
+
+    // Se o horário não tiver um usuario_sk, realiza a atualização
+    db.run(`
+      UPDATE horario
+      SET usuario_sk = ?
+      WHERE id_horario = ?
+    `, [usuarioId, idHorario], function(err) {
+      if (err) {
+        console.error("Erro ao atualizar horário:", err.message);
+        return res.status(500).json({ message: "Erro ao atualizar horário." });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ message: "Horário não encontrado para atualizar." });
+      }
+
+      res.status(200).json({ message: "Horário atualizado com sucesso." });
+    });
+  });
+});
+
+// Rota para listar os agendamentos de um usuário logado
+app.get("/agendamentos", (req, res) => {
+  const usuarioId = req.usuario.id_usuario;  // ID do usuário logado, extraído do token
+
+  // Consulta os agendamentos do usuário logado
+  db.all(`
+    SELECT 
+      a.id_agendamento, 
+      a.data, 
+      a.hora 
+    FROM agendamento a
+    WHERE a.usuario_sk = ?
+  `, [usuarioId], (err, rows) => {
+    if (err) {
+      console.error("Erro ao obter agendamentos:", err.message);
+      return res.status(500).json({ message: "Erro ao carregar agendamentos." });
+    }
+
+    // Se não houver agendamentos, retorna um array vazio
+    res.status(200).json({
+      result: {
+        agendamentos: rows || [], // Garantir que um array vazio seja retornado
+      },
+    });
+  });
+});
+
+// Rota para cancelar um agendamento (tornar usuario_sk nulo)
+app.put("/agendamentos/cancelar/:id", verificarToken, (req, res) => {
+  const idAgendamento = req.params.id;  // ID do agendamento a ser cancelado
+  const usuarioId = req.usuario.id_usuario;  // ID do usuário logado, proveniente do token
+
+  // Verifica se o agendamento existe e se o usuario_sk corresponde ao usuário logado
+  db.get(`
+    SELECT usuario_sk
+    FROM agendamento
+    WHERE id_agendamento = ? AND usuario_sk = ?
+  `, [idAgendamento, usuarioId], (err, row) => {
+    if (err) {
+      console.error("Erro ao buscar agendamento:", err.message);
+      return res.status(500).json({ message: "Erro ao verificar agendamento." });
+    }
+
+    if (!row) {
+      return res.status(404).json({ message: "Agendamento não encontrado ou não pertence ao usuário." });
+    }
+
+    // Se o agendamento existe e pertence ao usuário, podemos cancelá-lo
+    db.run(`
+      UPDATE agendamento
+      SET usuario_sk = NULL
+      WHERE id_agendamento = ?
+    `, [idAgendamento], function(err) {
+      if (err) {
+        console.error("Erro ao cancelar agendamento:", err.message);
+        return res.status(500).json({ message: "Erro ao cancelar agendamento." });
+      }
+
+      if (this.changes === 0) {
+        return res.status(404).json({ message: "Agendamento não encontrado para cancelar." });
+      }
+
+      res.status(200).json({ message: "Agendamento cancelado com sucesso." });
+    });
   });
 });
 
