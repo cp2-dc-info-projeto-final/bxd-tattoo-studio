@@ -253,7 +253,6 @@ app.post('/adm/novo', verificarTokenAdm, async (req, res) => {
 app.post('/horario/novo', verificarTokenAdm, (req, res) => {
   
   const { datetime } = req.body;
-  const userId = req.userId; // Obtém o ID do usuário autenticado
 
   if (!datetime) {
     return res.status(400).json({ message: 'O campo datetime é obrigatório.' });
@@ -275,7 +274,7 @@ app.post('/horario/novo', verificarTokenAdm, (req, res) => {
       // Insere o novo horário e associa ao usuário
       db.run(
         'INSERT INTO horario (datetime, usuario_sk) VALUES (?, ?)',
-        [datetime, userId],
+        [datetime],
         function (err) {
           if (err) {
             return res.status(500).json({ message: 'Erro ao cadastrar horário.' });
