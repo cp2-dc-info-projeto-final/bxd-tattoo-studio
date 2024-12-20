@@ -364,34 +364,27 @@ app.get("/horarios", verificarTokenAdm, (req, res) => {
   });
 });
 
-// Rota para listar horários de uma data específica, onde usuario_sk é nulo, retornando apenas a hora
+// Rota para buscar horários em data especifica
 app.get("/horarios/:data", verificarTokenAdm, (req, res) => {
-  let { data } = req.params; // Obtém a data fornecida na URL (formato DD/MM/YYYY)
-
-  // Valida o formato da data para garantir que seja no formato DD/MM/YYYY
-  const dataRegex = /^\d{2}\/\d{2}\/\d{4}$/;
-  if (!dataRegex.test(data)) {
-    return res.status(400).json({ message: "Data no formato inválido. Use o formato DD/MM/YYYY." });
-  }
-
-  // Converte a data do formato brasileiro (DD/MM/YYYY) para o formato ISO (YYYY-MM-DD)
-  const partesData = data.split('/');
-  const dataConvertida = `${partesData[2]}-${partesData[1]}-${partesData[0]}`;  // YYYY-MM-DD
+  const dataSelecionada = req.params.data; // Recebe a data no formato YYYY-MM-DD
 
   db.all(`
     SELECT 
-      SUBSTR(h.datetime, 12, 5) AS hora     -- Extrai apenas a parte da hora (HH:MM)
+      h.id_horario, 
+      SUBSTR(h.datetime, 12, 5) AS hora     -- Extrai a parte da hora (HH:MM)
     FROM horario h
-    WHERE h.usuario_sk IS NULL
-      AND SUBSTR(h.datetime, 1, 10) = ?    -- Filtra pela data específica
-  `, [dataConvertida], (err, rows) => {
+    WHERE h.usuario_sk IS NULL            -- Filtra onde usuario_sk é nulo
+      AND SUBSTR(h.datetime, 1, 10) = ?   -- Filtra pela data enviada (formato YYYY-MM-DD)
+  `, [dataSelecionada], (err, rows) => {
     if (err) {
       console.error("Erro ao obter horários:", err.message);
       return res.status(500).json({ message: "Erro ao carregar horários." });
     }
+    
+    // Retorna os horários disponíveis na data especificada
     res.status(200).json({
       result: {
-        horarios: rows.map(row => row.hora) || [], // Retorna apenas as horas
+        horarios: rows || [], // Garante que retorne um array mesmo que vazio
       },
     });
   });
